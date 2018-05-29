@@ -1,5 +1,5 @@
 # Smartto
-3d printer firmware and hardware of for stm32
+3d printer firmware and hardware for stm32
 
 supported machines: A30/E180/301
 
