@@ -3,4 +3,4 @@
 
 eclipse tools download link: http://www.geeetech.com/OpenSource/
 
-The firmware will be available soon!
+Two version, one for iar (stable) another for eclipse(not stable now) 
