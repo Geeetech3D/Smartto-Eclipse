@@ -11,9 +11,9 @@ company | production
 --- | ---
 Geeetech | A30 / E180 / 301
 
-## IAR(stable)
+## Platform--IAR(stable)
 
-## Eclipse(alpha)
+## Platform--Eclipse(alpha)
 
 ### How to compile STM32
 Step 1: Install Java environment
@@ -30,6 +30,5 @@ Project | STM32f103r.zip
 
 Step3: Import the project into Eclipse
 
-[Tool] \
 [Eclipse Tools](http://www.geeetech.com/OpenSource/)
 
