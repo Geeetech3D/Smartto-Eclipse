@@ -7,8 +7,14 @@
 ## Introduction
 3D printer firmware and hardware for stm32
 
+Folder | Description
+--- | ---
+firmwares | source code of this project(including IAR version and Eclipse version)
+circuit_diagram | electronic circuit diagrams of A30 / E180 / 301 
+tools | mini scripts for using firmwares or controlling motor
+
 ## Support
-company | production
+Company | Production
 --- | ---
 Geeetech | A30 / E180 / 301
 
