@@ -1,0 +1,135 @@
+[DebugChecksum]
+Checksum=-1441815552
+[Exceptions]
+StopOnUncaught=_ 0
+StopOnThrow=_ 0
+[Stack]
+FillEnabled=0
+OverflowWarningsEnabled=1
+WarningThreshold=90
+SpWarningsEnabled=1
+WarnLogOnly=1
+UseTrigger=1
+TriggerName=main
+LimitSize=0
+ByteLimit=50
+[CallStack]
+ShowArgs=0
+[Disassembly]
+MixedMode=0
+[SWOTraceHWSettings]
+OverrideDefaultClocks=0
+CpuClock=72000000
+ClockAutoDetect=1
+ClockWanted=2000000
+JtagSpeed=2000000
+Prescaler=36
+TimeStampPrescIndex=0
+TimeStampPrescData=0
+PcSampCYCTAP=1
+PcSampPOSTCNT=15
+PcSampIndex=0
+DataLogMode=0
+ITMportsEnable=0
+ITMportsTermIO=0
+ITMportsLogFile=0
+ITMlogFile=$PROJ_DIR$\ITM.log
+[Interrupts]
+Enabled=1
+[MemoryMap]
+Enabled=0
+Base=0
+UseAuto=0
+TypeViolation=1
+UnspecRange=1
+ActionState=1
+[CodeCoverage]
+Enabled=_ 0
+[struct_types]
+Fmt0=FILE_DOWNLOAD-Crc_Data	4	0
+Fmt1=mixer_t-max	3	0
+Fmt2=mixer_t-min	3	0
+Fmt3=setting_t-pid_adjust_range	4	0
+[array_types]
+Fmt0=int[3]	4	0
+Fmt1=u16[5]	3	0
+Fmt2=u8[16]	4	0
+Fmt3=u8[2]	3	0
+Fmt4=u8[3]	3	0
+Fmt5=u8[6]	4	0
+[watch_formats]
+Fmt0={W}0:checksum	4	0
+Fmt1={W}0:error_code	3	0
+Fmt2={W}1:block_buffer_tail	4	0
+Fmt3={W}1:crc12	4	0
+Fmt4={W}1:crc13	4	0
+Fmt5={W}1:crc14	4	0
+Fmt6={W}1:dd12	4	0
+Fmt7={W}1:dd13	4	0
+Fmt8={W}1:dd14	4	0
+Fmt9={W}1:flag	4	0
+Fmt10={W}1:next_buffer_head	4	0
+Fmt11={W}1:store_flag	4	0
+[SWOTraceWindow]
+PcSampling=0
+InterruptLogs=0
+ForcedTimeStamps=0
+EventCPI=0
+EventEXC=0
+EventFOLD=0
+EventLSU=0
+EventSLEEP=0
+[DataLog]
+LogEnabled=0
+SumEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+ShowTimeSum=1
+[InterruptLog]
+LogEnabled=0
+SumEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+ShowTimeSum=1
+SumSortOrder=0
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
+[CallStackLog]
+Enabled=0
+[DriverProfiling]
+Enabled=0
+Mode=3
+Graph=0
+Symbiont=0
+Exclusions=
+[Disassemble mode]
+mode=3
+[Breakpoints2]
+Bp0=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\SVN_Project\GTM32\software\A30_firmware}.164.5" 0 0 1 "" 0 "" 0
+Bp1=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\GTM32_MINI_S_Temp}.422.5" 0 0 1 "" 0 "" 0
+Bp2=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\GTM32_MINI_S_Temp}.856.3" 0 0 1 "" 0 "" 0
+Bp3=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\GTM32_MINI_S_Temp}.336.11" 0 0 1 "" 0 "" 0
+Bp4=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\GTM32_MINI_S_Temp}.294.13" 0 0 1 "" 0 "" 0
+Bp5=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User}.628.3" 0 0 1 "" 0 "" 0
+Bp6=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\SVN_Project\GTM32\software\A30_firmware}.357.11" 0 0 1 "" 0 "" 0
+Bp7=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\SVN_Project\GTM32\software\A30_firmware}.654.12" 0 0 1 "" 0 "" 0
+Bp8=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\sd_print.c}.368.11" 0 0 1 "" 0 "" 0
+Bp9=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\Command.c}.1357.13" 0 0 1 "" 0 "" 0
+Bp10=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\data_handle.c}.225.12" 0 0 1 "" 0 "" 0
+Bp11=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\data_handle.c}.95.4" 0 0 1 "" 0 "" 0
+Count=12
+[Aliases]
+A0=_ "C:\Users\Administrator\Desktop\STM32F10x_3D_Printer\STM32F10x_StdPeriph_Driver\src\misc.c" ""
+A1=_ "C:\Users\Administrator\Desktop\STM32F10x_3D_Printer\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c" ""
+A2=_ "C:\Users\Administrator\Desktop\STM32F10x_3D_Printer\User\delay.c" ""
+A3=_ "C:\Users\Administrator\Desktop\STM32F10x_3D_Printer\User\main.c" ""
+A4=_ "F:\E180\GTM32_MINI_S\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c" ""
+A5=_ "F:\GTM32_2IN1\User\main.c" ""
+A6=_ "F:\SVN_Project\GTM32\software\E180\GTM32_MINI_S\User\main.c" ""
+Count=7
+SuppressDialog=1
