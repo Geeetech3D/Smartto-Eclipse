@@ -101,19 +101,19 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 
 
 //Limit switch polarity setting
-#define X_MIN_ENDSTOP_LEVEL    LOW  //LOW  //HIGH
-#define X_MAX_ENDSTOP_LEVEL    LOW
-#define Y_MIN_ENDSTOP_LEVEL    LOW
-#define Y_MAX_ENDSTOP_LEVEL    LOW
-#define Z_MIN_ENDSTOP_LEVEL    LOW
-#define Z_MAX_ENDSTOP_LEVEL    LOW
+#define X_MIN_ENDSTOP_LEVEL    HIGH  //LOW  //HIGH
+#define X_MAX_ENDSTOP_LEVEL    HIGH
+#define Y_MIN_ENDSTOP_LEVEL     HIGH
+#define Y_MAX_ENDSTOP_LEVEL    HIGH
+#define Z_MIN_ENDSTOP_LEVEL     HIGH
+#define Z_MAX_ENDSTOP_LEVEL    HIGH
 
-#define X_MIN_ENDSTOP_STATUS    OPEN    //OPEN  CLOSE
-#define X_MAX_ENDSTOP_STATUS    OPEN
-#define Y_MIN_ENDSTOP_STATUS    OPEN
-#define Y_MAX_ENDSTOP_STATUS    OPEN
-#define Z_MIN_ENDSTOP_STATUS    OPEN
-#define Z_MAX_ENDSTOP_STATUS    OPEN
+#define X_MIN_ENDSTOP_STATUS     CLOSE    //OPEN  CLOSE
+#define X_MAX_ENDSTOP_STATUS     CLOSE
+#define Y_MIN_ENDSTOP_STATUS     CLOSE
+#define Y_MAX_ENDSTOP_STATUS    CLOSE
+#define Z_MIN_ENDSTOP_STATUS     CLOSE
+#define Z_MAX_ENDSTOP_STATUS    CLOSE
 
 
 #define NUM_AXIS                  4                   //Number of motors
@@ -124,12 +124,12 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 #define STEPS_PER_mm_FOR_X       80
 #define STEPS_PER_mm_FOR_Y       80
 #define STEPS_PER_mm_FOR_Z       400.000
-#define STEPS_PER_mm_FOR_E       85
+#define STEPS_PER_mm_FOR_E       90
 
 //Stepper motor maximum speed
-#define MAX_FEEDRAT_FOR_X       550   //Xmm/s 
-#define MAX_FEEDRAT_FOR_Y       550   //Ymm/s 
-#define MAX_FEEDRAT_FOR_Z        35    //Zmm/s 
+#define MAX_FEEDRAT_FOR_X       180   //Xmm/s 
+#define MAX_FEEDRAT_FOR_Y       180   //Ymm/s 
+#define MAX_FEEDRAT_FOR_Z        30    //Zmm/s 
 
 //Stepping motor homing speed
 #define HOME_SPEED_X   200     //Xmm/s 
@@ -154,19 +154,19 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 #define ACCELERATION_CHANGE_DISTANCE 5//mm
 
 //Each axis acceleration
-#define RETRACT_ACCELERATION      1000//3000 //
-#define ACCELERATION              1000 //mm/s^2
+#define RETRACT_ACCELERATION    1000// 500 //1000//3000 //
+#define ACCELERATION             1000// 500//1000 //mm/s^2
   
-#define AXIS_ACCELERATION_FOR_X     5000   //5000//800//5000//Xmm/s^2    //2016.6.3
-#define AXIS_ACCELERATION_FOR_Y     5000  //5000//800//5000 //Ymm/s^2    //2016.6.3
-#define AXIS_ACCELERATION_FOR_Z     50 //50//Zmm/s^2
-#define AXIS_ACCELERATION_FOR_E     5000 //5000//800 //5000//Emm/s^2    //2016.6.3 
+#define AXIS_ACCELERATION_FOR_X    1500// 800   //5000//800//5000//Xmm/s^2    //2016.6.3
+#define AXIS_ACCELERATION_FOR_Y    1000// 600  //5000//800//5000 //Ymm/s^2    //2016.6.3
+#define AXIS_ACCELERATION_FOR_Z    500 //50//Zmm/s^2
+#define AXIS_ACCELERATION_FOR_E    1500// 800 //5000//800 //5000//Emm/s^2    //2016.6.3 
 
 //
-#define MAX_X_JERK  10//20//mm/s     //2016.6.3
-#define MAX_Y_JERK  10//20//mm/s     //2016.6.3
-#define MAX_Z_JERK  0.5//mm/S
-#define MAX_E_JERK  10////mm/S   //dxc   defore is 20
+#define MAX_X_JERK   20// 4//10//20//mm/s     //2016.6.3
+#define MAX_Y_JERK  20// 4//10//20//mm/s     //2016.6.3
+#define MAX_Z_JERK  5  //0.5//mm/S
+#define MAX_E_JERK  20// 4////mm/S   //dxc   defore is 20
 #define MIN_MIXER_OFP   0
 #define MAX_MIXER_OFP   (100-MIN_MIXER_OFP)
 

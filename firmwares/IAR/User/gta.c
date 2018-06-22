@@ -1,5 +1,6 @@
 
 #include "gta.h"
+#include "XZK_Configuration.h"
 
 
 u8 ERx_buf[CMD_EXT_BUF_MAX][CMD_EXT_LEN_MAX];
@@ -65,8 +66,10 @@ void USART2_TxByte(u8 ch)
 
 void USART2_TxString(u8 *string)
 {
+#ifdef WIFI_MODULE
   while(*string != '\0')
     USART2_TxByte(*string ++);
+#endif
 }
 
 

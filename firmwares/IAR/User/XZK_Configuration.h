@@ -14,8 +14,11 @@
 #elif defined(BOARD_M301_Pro_S)
   #include "Configuration_GTM32_Pro_M301.h"
 
-#elif defined(BOARD_A30S_MINI_S)
-  #include "Configuration_GTM32_MINI_A30S.h"
+#elif defined(BOARD_A30M_Pro_S)
+  #include "Configuration_GTM32_Pro_A30M.h"
+  
+#elif defined(BOARD_A30D_Pro_S)
+  #include "Configuration_GTM32_Pro_A30D.h"
 #endif
 
 

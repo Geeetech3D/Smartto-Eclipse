@@ -57,7 +57,7 @@ void my_printf(char *Data)
   while ( *Data != 0) 
   {
         USART_SendData(USARTx, *Data);
-	while( USART_GetFlagStatus(USARTx, USART_FLAG_TC) == RESET );
+	while( !(USARTx->SR&USART_FLAG_TXE));
 	Data++;
   }
 }

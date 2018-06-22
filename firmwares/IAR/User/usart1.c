@@ -1,4 +1,8 @@
 
+
+#include "usart1.h"
+#include <stdarg.h>
+#include "Configuration_GiantArm_S200.h"
 /**********************************************************
 ***Function:     USART1_Config
 ***Description: USART1 initialization
@@ -6,10 +10,6 @@
 ***Output: 
 ***Return:
 ***********************************************************/
-#include "usart1.h"
-#include <stdarg.h>
-#include "Configuration_GiantArm_S200.h"
-
 void USART1_Config(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;

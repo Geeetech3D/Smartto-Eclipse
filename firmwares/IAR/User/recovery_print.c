@@ -1,27 +1,3 @@
-/*
- * Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech¡¯s Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible. 
- * Meanwhile we encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * There is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not applicable to them.
- * Under this condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet these needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- * Geeetech commits itself to promoting the open source spirit. 
-*/
 
 #include "recovery_print.h"
 #include "command.h"
@@ -91,11 +67,12 @@ typedef struct {
 
 void Recovery_GPIO_Config(void)
 {
+
     GPIO_InitTypeDef GPIO_InitStructure;          
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
     NVIC_InitTypeDef NVIC_InitStructure;
     EXTI_InitTypeDef EXTI_InitStructure; 
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) ||(defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)   //#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
     GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_4;
     GPIO_InitStructure.GPIO_Mode =    GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -148,6 +125,7 @@ void Recovery_GPIO_Config(void)
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
 #endif
     NVIC_Init(&NVIC_InitStructure);
+
                        
 }    
 
@@ -156,6 +134,8 @@ extern s32 position[4];
 extern u8 SD_detec_flag;
 extern u8 test_times;
 extern u8  select_update_flag1,select_update_flag2;
+
+
 void Recovery_sdprint(void)
 {
 	Recovery_Data Recovery_Save_Data;
@@ -174,14 +154,17 @@ void Recovery_sdprint(void)
 		strcpy(Systembuf_Infos.printer_file_path, Recovery_SaveAUTOData.file_path);
 		system_infor.print_file_size = Recovery_SaveAUTOData.print_file_sz;
 		recovery_parameter.Current_sd_byte = Recovery_SaveAUTOData.sd_byte;
-		Setting.targe_temperature[NOZZLE0] = Recovery_SaveAUTOData.targe_temp;
-             Setting.targe_temperature[BED] =Recovery_SaveAUTOData.targe_tempBED;
+            if(system_infor.sd_print_status == 5) 
+            {
+		  Setting.targe_temperature[NOZZLE0] = Recovery_SaveAUTOData.targe_temp;
+               Setting.targe_temperature[BED] =Recovery_SaveAUTOData.targe_tempBED;
+            }
               feed_rate = Recovery_SaveAUTOData.feed_rate;
               pos[X_AXIS] = Recovery_SaveAUTOData.xx;
       		 pos[Y_AXIS] = Recovery_SaveAUTOData.yy;  
       		 pos[Z_AXIS] = Recovery_SaveAUTOData.zz;
       		 pos[E_AXIS] = Recovery_SaveAUTOData.ee;
-        
+
       		recovery_parameter.Current_feed_rate = feed_rate;
       		recovery_parameter.Current_point_x = pos[X_AXIS];
       		recovery_parameter.Current_point_y = pos[Y_AXIS];  
@@ -203,8 +186,11 @@ void Recovery_sdprint(void)
 		strcpy(Systembuf_Infos.printer_file_path, Recovery_Save_Data.file_path);
 		system_infor.print_file_size = Recovery_Save_Data.print_file_sz;
 		recovery_parameter.Current_sd_byte = Recovery_Save_Data.sd_byte;
-		Setting.targe_temperature[NOZZLE0] = Recovery_Save_Data.targe_temp;
-             Setting.targe_temperature[BED] =Recovery_Save_Data.targe_tempBED;
+              if(system_infor.sd_print_status == 5) 
+              {
+		        Setting.targe_temperature[NOZZLE0] = Recovery_Save_Data.targe_temp;
+                    Setting.targe_temperature[BED] =Recovery_Save_Data.targe_tempBED;
+              }
               feed_rate = Recovery_Save_Data.feed_rate;
               pos[X_AXIS] = Recovery_Save_Data.xx;
       		 pos[Y_AXIS] = Recovery_Save_Data.yy;  
@@ -222,7 +208,8 @@ void Recovery_sdprint(void)
       		
    	}
       	fptr_buf = recovery_parameter.Current_sd_byte;
-      	            
+      if(system_infor.sd_print_status != 5) 
+        return;
       if(Print_File.fs!=NULL)
 		f_close(&Print_File);
       do
@@ -263,7 +250,7 @@ void Recovery_sdprint(void)
 			return;
   		strcpy(Command_Buffer,"G90\r\n");
   		Processing_command();
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
   		if(recovery_parameter.Current_point_z <10 && system_infor.Auto_Levele_Flag !=1)
   		{
 
@@ -282,8 +269,8 @@ void Recovery_sdprint(void)
 #ifdef ENABLE_AUTO_BED_LEVELING
   			if(system_infor.Auto_Levele_Flag ==1 )
 			{
-		    		Current_Position[Z_AXIS] =pos[Z_AXIS];
-		  	       position[Z_AXIS]= (s32)(pos[Z_AXIS]*Setting.steps_per_mm[Z_AXIS]) ;
+			        Current_Position[Z_AXIS] =recovery_parameter.Current_point_z;//pos[Z_AXIS];
+		  	       position[Z_AXIS]= (s32)(recovery_parameter.Current_point_z*Setting.steps_per_mm[Z_AXIS]) ;
 			}
 			else
 #endif
@@ -318,6 +305,7 @@ void Recovery_sdprint(void)
 	  		system_infor.Auto_Levele_Flag=0;
 	  		sprintf(Command_Buffer,"G1 F800 X%2f Y%2f E3\r\n", pos[X_AXIS], pos[Y_AXIS]);
 	  		Processing_command();
+
 	  		system_infor.Auto_Levele_Flag=1;
 	  		test_times=3;
 		}
@@ -333,6 +321,24 @@ void Recovery_sdprint(void)
 
       }
       memset(Command_Buffer,0,CMDBUF_SIZE);  
+
+      
+#ifdef ENABLE_AUTO_BED_LEVELING
+    if(system_infor.Auto_Levele_Flag ==1 )
+    {
+        Current_Position[Z_AXIS] =recovery_parameter.Current_point_z;//pos[Z_AXIS];
+        apply_rotation_xyz(Setting.plan_bed_level_matrix, &recovery_parameter.Current_point_x, &recovery_parameter.Current_point_y, &recovery_parameter.Current_point_z);
+        position[Z_AXIS]= (s32)(recovery_parameter.Current_point_z*Setting.steps_per_mm[Z_AXIS]) ;
+    }
+    else
+#endif
+    {
+        test_times=3;
+        Current_Position[Z_AXIS] =pos[Z_AXIS];
+        position[Z_AXIS]= (s32)( pos[Z_AXIS]*Setting.steps_per_mm[Z_AXIS]) ;
+
+    }
+
       sprintf(Command_Buffer,"G1 F3000\r\n");
       Processing_command();
 
@@ -394,8 +400,10 @@ void Recovery_process(void)
   res = Recovery_detect();
   if(res == FR_OK)
   {
-       system_infor.sd_print_status=SD_PRINT_PAUSE;
-       Add_Message(PRINTER_SD_STATUS);
+        Recovery_sdprint();
+        system_infor.sd_print_status=SD_PRINT_PAUSE;
+        Add_Message(PRINTER_SD_STATUS);
+       
       
   }
   else

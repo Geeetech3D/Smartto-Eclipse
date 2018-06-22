@@ -29,8 +29,7 @@
 #define  TEMP_EXCEPTION                                  21  // temperture exception
 #define  FILAMENT_DETECTOR                            22 //
 #define  FILAMENT_DETECTOR_OFF_ON                            23 //
-
-
+#define  MIXER_RATE                       24
 
 
 

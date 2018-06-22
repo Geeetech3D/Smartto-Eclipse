@@ -40,7 +40,7 @@ int file_num;
 u8 SD1_flag = 0xFF;
 u8 SD_detec_flag = 0xFF;
 
-
+u8 Sum_layers_flag=0;
 u16  Sum_layers;
 float layer_high=0.2;
 extern __IO u8 Receive_Buffer[64];
@@ -67,6 +67,10 @@ u32 sd_file_time[FILE_NUM];
 
 extern void Set_Up_Data_Flag(void);
 
+void GCODE_M26(void)
+{
+    
+}
 void GCODE_M27(void)
 {
     if(system_infor.sd_status == FR_OK)
@@ -290,6 +294,7 @@ void Print_3D_SD(void)
         break;
         case SD_PRINT_FINISH:    
             fptr_buf = 0;
+            system_infor.print_file_size=0;
             system_infor.print_percent=100;
             memset(SD_Data_Buffer,0,SD_DATA_BUF_SIZE);
             SET_FAN1_SPEED(FULL_POWER);
@@ -305,19 +310,39 @@ void Print_3D_SD(void)
             system_infor.stop_flag = 1;
             strcpy(Command_Buffer,"M104 S0\r\n");
             Processing_command();
+            strcpy(Command_Buffer,"M104 T1 S0\r\n");
+            Processing_command();
             strcpy(Command_Buffer,"M140 S0\r\n");
             Processing_command();
             strcpy(Command_Buffer,"M106 S0\r\n");
             Processing_command();
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
 
-            if(Current_Position[Z_AXIS]<10)
+
+            if(Get_Motor_Status()!=1)
             {
-                strcpy(Command_Buffer,"G1 F500 Z15\r\n");
+                 if(Current_Position[Z_AXIS]<10)
+                {
+                    strcpy(Command_Buffer,"G1 F500 Z15\r\n");
+                    Processing_command();
+                }
+                strcpy(Command_Buffer,"G28 XY\r\n");
+                Processing_command();
+                strcpy(Command_Buffer,"G1 F3000 Y310\r\n");
                 Processing_command();
             }
-            strcpy(Command_Buffer,"G28 XY\r\n");
-            Processing_command();
+            else
+            {
+                if(Current_Position[Z_AXIS]<10)
+                {
+                    strcpy(Command_Buffer,"G1 F500 Z15\r\n");
+                    Processing_command();
+                }
+                strcpy(Command_Buffer,"G1 F3000 Y310\r\n");
+                Processing_command();
+                strcpy(Command_Buffer,"G28 X\r\n");
+                Processing_command();
+            }
 #elif BOARD_E180_MINI_S
             strcpy(Command_Buffer,"G28\r\n");
             Processing_command();
@@ -353,6 +378,8 @@ void Print_3D_SD(void)
             Recovery_create();
             strcpy(Command_Buffer,"M104\r\n");
             Processing_command();
+            strcpy(Command_Buffer,"M104 T1 S0\r\n");
+            Processing_command();
             strcpy(Command_Buffer,"M140\r\n");
             Processing_command();
             f_close(&Print_File);
@@ -363,7 +390,7 @@ void Print_3D_SD(void)
 
         case SD_PRINT_PAUSE:
             system_infor.sd_print_flag = DISABLE;
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S) 
             if(Current_Position[Z_AXIS]<10 && system_infor.Auto_Levele_Flag!=1)
             {
             strcpy(Command_Buffer,"G1 F500 Z15\r\n");
@@ -417,6 +444,7 @@ u16 get_print_layer(void)
       		}
       		n++;
       }
+    Sum_layers_flag =1;
      return 0; 
       
 }

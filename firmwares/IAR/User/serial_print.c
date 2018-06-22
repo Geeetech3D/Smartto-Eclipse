@@ -5,13 +5,20 @@
 #include "fat.h"
 #include "delay.h"
 
+ #ifdef BOARD_M301_Pro_S 
+
+ #else
+
+ #endif
+
+
 static int bufwrite_count = 0,bufwrite_count3 = 0;
 static int bufread_count = 0,bufread_count3 = 0;
 static char serial_char,serial_char3;
 static bool comment_mode = false,comment_mode3 = false;
 static int serial_count = 0,serial_count3 = 0;
 static bool fromsd[BUFSIZE];
-static int buflen = 0,buflen3 = 0;
+static int  buflen = 0, buflen3 = 0;
 static char *strchr_pointer; // just a pointer to find chars in the command string like X, Y, Z, E, etc
 static u8 null_count = 0,null_count3 = 0;
 extern char cmdbuffer[BUFSIZE][MAX_CMD_SIZE];
@@ -488,6 +495,7 @@ void fetch_next_commandS(void)
                             AddData_To_ConfigFile();
 
                         }
+                        if(File_DownST.Rx_File_Size<1024)
                         /**************************************************************************/
                         crc1=0;
                         crc1=crc16(File_DownST.File_Data,File_DownST.Rx_File_Size);
@@ -621,7 +629,7 @@ void Display_command(void)
         command_process(LCD_Command);
         if(system_infor.serial_ack_flag) 
         {
-            my_printf("ok  \r\n");
+           // my_printf("ok  \r\n");
 
             delay_ms(1);
         }

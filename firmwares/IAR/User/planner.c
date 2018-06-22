@@ -1,23 +1,4 @@
-/*
-  based on the following,and modified by Geeetech
-  planner.c - buffers movement commands and manages the acceleration profile plan
- Part of Grbl
- 
- Copyright (c) 2009-2011 Simen Svale Skogsrud
- 
- Grbl is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- 
- Grbl is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 
 #include "planner.h"
 #include "step_motor.h"
@@ -370,7 +351,7 @@ void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate,
   while(block_buffer_tail == next_buffer_head);
 
   block_t *block = &block_buffer[block_buffer_head];
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S)
   if(test_times>0)
   {
   	Num_Unexpected_events=0;
@@ -448,7 +429,7 @@ void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate,
 	target[E_AXIS] = lround(e*Setting.steps_per_mm[E_AXIS]);
 	
 	float delta_mm[4];
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S)
 	 if(test_times>0)
 	 {
   		printf("target:%d,Y:%d,Z:%d,,\r\n",target[X_AXIS],target[Y_AXIS],target[Z_AXIS]);
@@ -461,7 +442,7 @@ void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate,
 	delta_mm[Z_AXIS] = (float)(target[Z_AXIS]-position[Z_AXIS])/Setting.steps_per_mm[Z_AXIS];
 	delta_mm[E_AXIS] = (float)(target[E_AXIS]-position[E_AXIS])/Setting.steps_per_mm[E_AXIS];
 	delta_mm[E_AXIS] *= (float)((float)(Setting.extrude_multiply)/100.0);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S)
 	if(test_times>0)
 	 {
   		printf("delta_mm:%f,Y:%f,Z:%f,,\r\n\r\n",delta_mm[X_AXIS],delta_mm[Y_AXIS],delta_mm[Z_AXIS]);
@@ -512,8 +493,11 @@ void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate,
 	block->steps_e /= 100;
 
         
-    
+    if(block->steps_x<Setting.min_segment_steps && block->steps_y<Setting.min_segment_steps &&  block->steps_z<Setting.min_segment_steps)
 	block->step_event_count = MAX(block->steps_x, MAX(block->steps_y, MAX(block->steps_z, block->steps_e)));
+    else
+      	block->step_event_count = MAX(block->steps_x, MAX(block->steps_y, block->steps_z));
+
   
 
   
@@ -545,7 +529,12 @@ void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate,
 	if(block->steps_y != 0) 
 		Enable_Y_Axis();
 	if(block->steps_z != 0)
-		Enable_Z_Axis();
+      {   
+	  Enable_Z_Axis();
+#if (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S) 
+        Enable_E2_Axis() ;
+#endif
+      }
 	if(block->steps_e != 0)
 	{
 		Enable_E0_Axis();
@@ -779,6 +768,9 @@ static void Axis_go_origin(u8 axis,u8 dir, u16 speed, u8 home, float origin_coor
       else if(axis == Z_AXIS) 
       {
          Enable_Z_Axis();
+#if (defined BOARD_A30M_Pro_S  )  || (defined BOARD_A30D_Pro_S) 
+        Enable_E2_Axis() ;
+#endif
          distance = STEPS_PER_mm_FOR_Z;
       }    
 
@@ -801,7 +793,7 @@ static void Axis_go_origin(u8 axis,u8 dir, u16 speed, u8 home, float origin_coor
           if(Autohome.move_distance[axis] ==0) 
           {
 		  	Autohome.step[axis] = 4; 
-#ifdef BOARD_A30_MINI_S    
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)   || (defined BOARD_A30D_Pro_S) 
             Autohome.period[axis] = Autohome.period[axis]*4;
 #elif BOARD_E180_MINI_S
 			Autohome.period[axis] = Autohome.period[axis]*2;
@@ -830,7 +822,7 @@ static void Axis_go_origin(u8 axis,u8 dir, u16 speed, u8 home, float origin_coor
           if(Autohome.move_distance[axis] ==0) 
           {
             Autohome.step[axis] = 4; 
-#ifdef BOARD_A30_MINI_S  
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S) 
             Autohome.period[axis] = Autohome.period[axis]*4;
 #elif BOARD_E180_MINI_S
 			Autohome.period[axis] = Autohome.period[axis]*2;
@@ -918,13 +910,16 @@ void All_axis_go_origin(void)
     Enable_X_Axis();
     Enable_Y_Axis();
     Enable_Z_Axis();
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+    Enable_E2_Axis() ;
+#endif
   
   //if(Autohome.count%Autohome.period[X_AXIS] == 0)   
     X_go_origin(0.0);
   //if(Autohome.count%Autohome.period[Y_AXIS] == 0)   
     Y_go_origin(0.0);
   //if(Autohome.count%Autohome.period[Z_AXIS] == 0)   
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
   if((Autohome.flag[0]==0) && (Autohome.flag[1]==0))
 #endif
     Z_go_origin(0.0);
@@ -1000,10 +995,20 @@ void axis_move(u8 axis, u8 dir, u16 speed, u16 distance)
 				//delay_us(1);
                 Y_STEP_L;
                 break;
-        case 2: Z_DIR_H;
+        case 2: 
+            Z_DIR_H;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+            E2_DIR_H; 
+#endif
                 Z_STEP_H;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                E2_STEP_H; 
+#endif
 				//delay_us(1);
                 Z_STEP_L;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+        E2_STEP_L; 
+#endif
                 break;
         default: break;
         }
@@ -1022,10 +1027,20 @@ void axis_move(u8 axis, u8 dir, u16 speed, u16 distance)
 				//delay_us(1);
                 Y_STEP_L;
                 break;
-        case 2: Z_DIR_L;
+        case 2:
+                Z_DIR_L;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                E2_DIR_L ;
+#endif
                 Z_STEP_H;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                E2_STEP_H; 
+#endif
 				//delay_us(1);
                 Z_STEP_L;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                E2_STEP_L; 
+#endif
                 break;
         }   
     }
@@ -1058,8 +1073,8 @@ void All_axis_reset_coordinate(void)
 extern char com_cpy[200];
 void  Filement_Constol_Function(u8 flag)
 {
-	static u8 Sent_Times=0;
-	if(Sent_Times>200)
+	static u16 Sent_Times=0;
+	if(Sent_Times>2000)
 	{
 		
 	      Sent_Times =0;
@@ -1138,6 +1153,7 @@ float st_get_position_mm(u8 axis)
  // }
   return (steper_position_in_steps / Setting.steps_per_mm[axis]);
 }
+#ifdef ENABLE_AUTO_BED_LEVELING
 void plan_get_position(vector_3 *position) {
 	matrix_3x3 inverse;
 	
@@ -1148,7 +1164,7 @@ void plan_get_position(vector_3 *position) {
 	vector_3_apply_rotation(inverse,position);
 
 }
-
+#endif
 void plan_set_position(float x, float y, float z, const float e)
 {
   //apply_rotation_xyz(Setting.plan_bed_level_matrix, &x, &y, &z);

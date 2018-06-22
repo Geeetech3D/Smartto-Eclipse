@@ -1,5 +1,5 @@
 [DebugChecksum]
-Checksum=-494271524
+Checksum=-1968056565
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -118,13 +118,18 @@ Bp4=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\GTM32_MINI_S_Temp}.294.13" 0 0 1 "" 0 "" 
 Bp5=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User}.628.3" 0 0 1 "" 0 "" 0
 Bp6=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\SVN_Project\GTM32\software\A30_firmware}.357.11" 0 0 1 "" 0 "" 0
 Bp7=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\..\SVN_Project\GTM32\software\A30_firmware}.654.12" 0 0 1 "" 0 "" 0
-Bp8=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\sd_print.c}.281.13" 0 0 1 "" 0 "" 0
-Bp9=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\rxfile.c}.575.1" 0 0 1 "" 0 "" 0
-Bp10=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\LCD2004.c}.3710.5" 0 0 1 "" 0 "" 0
-Bp11=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\stm32f10x_it.c}.726.7" 0 0 1 "" 0 "" 0
-Bp12=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\stm32f10x_it.c}.120.4" 0 0 1 "" 0 "" 0
-Bp13=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\Command.c}.2213.21" 0 0 1 "" 0 "" 0
-Count=14
+Bp8=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\rxfile.c}.580.3" 0 0 1 "" 0 "" 0
+Bp9=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\LCD2004.c}.3703.5" 0 0 1 "" 0 "" 0
+Bp10=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\stm32f10x_it.c}.728.5" 0 0 1 "" 0 "" 0
+Bp11=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\stm32f10x_it.c}.121.4" 0 0 1 "" 0 "" 0
+Bp12=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\planner.c}.750.5" 0 0 1 "" 0 "" 0
+Bp13=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\stm32f10x_it.c}.566.1" 0 0 1 "" 0 "" 0
+Bp14=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\wifi.c}.418.17" 0 0 1 "" 0 "" 0
+Bp15=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\planner.c}.734.3" 0 0 1 "" 0 "" 0
+Bp16=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\step_motor.c}.626.9" 0 0 1 "" 0 "" 0
+Bp17=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\step_motor.c}.646.5" 0 0 1 "" 0 "" 0
+Bp18=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\step_motor.c}.182.9" 0 0 1 "" 0 "" 0
+Count=19
 [Aliases]
 A0=_ "C:\Users\Administrator\Desktop\STM32F10x_3D_Printer\STM32F10x_StdPeriph_Driver\src\misc.c" ""
 A1=_ "C:\Users\Administrator\Desktop\STM32F10x_3D_Printer\STM32F10x_StdPeriph_Driver\src\stm32f10x_tim.c" ""

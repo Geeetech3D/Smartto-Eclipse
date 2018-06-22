@@ -33,6 +33,12 @@
   #define Z_STEP_L              GPIO_ResetBits(GPIOD, GPIO_Pin_6)
   #define Z_STEP_H              GPIO_SetBits(GPIOD, GPIO_Pin_6)
 
+/*
+#ifdef BOARD_A30M_Pro_S
+        E2_STEP_H; 
+#endif
+  */
+
   #define Enable_E0_Axis()      GPIOC->BRR = GPIO_Pin_4
   #define Disable_E0_Axis()     GPIOC->BSRR = GPIO_Pin_4
   #define E0_DIR_L              GPIO_ResetBits(GPIOB, GPIO_Pin_11)
@@ -54,6 +60,7 @@
   #define E2_STEP_L             GPIO_ResetBits(GPIOC, GPIO_Pin_14)
   #define E2_STEP_H             GPIO_SetBits(GPIOC, GPIO_Pin_14)
 
+
   #define MS1_L                 
   #define MS1_H                 
   #define MS2_L                 
@@ -71,6 +78,8 @@
 #define TEMPLATE_6 6
 #define TEMPLATE_7 7
 #define TEMPLATE_8 8
+#define TEMPLATE_9 9
+#define TEMPLATE_10 10
 #define CUSTOM_1   1
 #define CUSTOM_2   2
 #define CUSTOM_3   3
@@ -104,6 +113,7 @@ void Step_Motor_Control(void);
 void Disable_all_Axis(void);
 void Enable_all_Axis(void);
 void SetMotorEnableFlag(u8 flag);
+void Filament_Processing(void);
 
 void Mixer_Init(void);
 void Color_change(u8 start_p,u8 end_p,float start_h, float end_h);
@@ -112,7 +122,7 @@ void Current_Block_Clean(void);
 float get_current_position(u8 axis);
 void color_control(void);
 u8 Max_Divisor(u8 m, u8 n);
-static void Nozzle_Select(void);
+//static void Nozzle_Select(void);
 DWORD Save_line_num(void);
 DWORD Save_sd_block(void);
 DWORD Save_sd_byte(void);
@@ -126,4 +136,5 @@ void Motor_move_away(void);
 void Set_Micro_step(u8 ms);
 u8 Read_Z_MIN_ENDSTOP_INVERTING(void);
 void color_control(void);
+void Mixer_Change(void);
 #endif

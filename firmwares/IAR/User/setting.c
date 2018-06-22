@@ -7,7 +7,7 @@
 
 #define STORE_LEN 127	
 
-#define SETTINGS_FLAG 0xa5aa
+#define SETTINGS_FLAG 0xa55a
 
 setting_t Setting;
 setting_s Settings;
@@ -168,13 +168,15 @@ static void Get_Base_Setting(void)
         Setting.delta_radius = DELTA_RADIUS;
         Setting.delta_radius_error = RADIUS_ERROR;
         Setting.delta_printable_radius = DELTA_PRINTABLE_RADIUS;
-		Setting.endstop_adj[X_AXIS] = 0.0;
-		Setting.endstop_adj[Y_AXIS] = 0.0;
-		Setting.endstop_adj[Z_AXIS] = 0.0;
-         Setting.mixer_ofp_min = MIN_MIXER_OFP;
-        Setting.mixer_ofp_max = MAX_MIXER_OFP;
 #endif
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+    Setting.endstop_adj[X_AXIS] = 0.0;
+    Setting.endstop_adj[Y_AXIS] = 0.0;
+    Setting.endstop_adj[Z_AXIS] = 0.0;
+    Setting.mixer_ofp_min = MIN_MIXER_OFP;
+    Setting.mixer_ofp_max = MAX_MIXER_OFP;
+#endif
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
     Setting.zprobe_zoffset = -(Z_PROBE_OFFSET_FROM_EXTRUDER);
 #endif
 
@@ -262,6 +264,7 @@ void Get_Hardware_Version(void)
 	char HV_data[6];
 	STMFLASH_Read(HARDWARE_VERSION_ADDR, (u16*)HV_data, sizeof(HV_data)/2);
 	memcpy(Setting.HV, HV_data, sizeof(HV_data));
+   // printf("EEE:%s\r\n",Setting.HV);
 }
 void Store_AutoLevele_Flag(u8 flag)
 {	

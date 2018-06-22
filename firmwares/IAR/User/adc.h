@@ -21,7 +21,8 @@
 #define K1 0.95
 
 
-#ifdef BOARD_M301_Pro_S
+#if  (defined BOARD_M301_Pro_S)||(defined BOARD_A30M_Pro_S)|| (defined BOARD_A30D_Pro_S)
+
   #define SET_T0_POWER(power)           TIM_SetCompare3(TIM3,power)
   #define SET_T1_POWER(power)           TIM_SetCompare2(TIM3,power)
   #define SET_T2_POWER(power)           TIM_SetCompare1(TIM3,power)

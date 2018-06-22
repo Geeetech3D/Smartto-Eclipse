@@ -620,6 +620,9 @@
       <name>$PROJ_DIR$\..\User\command.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\User\Configuration_GTM32_Pro_A30S.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\User\data_handle.c</name>
     </file>
     <file>

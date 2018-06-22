@@ -1,11 +1,4 @@
 
-
-/*
-
-
-*/
-
-
 #include "LCD2004.h"
 #include "command.h"
 #include "delay.h"
@@ -37,7 +30,7 @@ extern float Current_Position[4] , Current_Temperature[5];
 extern __IO u8 Print_Time_S,Print_Time_M;
 extern __IO u16 Print_Time_H; 
 extern u8   dir_index ,selected_file_pos  ;
-extern u8  serial_connect_flag  ,serial_print_flag  ,serial_stop_flag;//serial_time_show_flag; 
+extern u8  serial_connect_fla  ,serial_stop_flag;//serial_time_show_flag; 
 extern char sd_file_name[255][50];
 extern char SD_Driver_Number[5];
 extern FATFS fats;
@@ -54,7 +47,7 @@ u8 refresh_time_flag=1;
 extern u32 turn_back_count;
 
 extern SystemInfor system_infor;//system_infor.sd_print_flag
-
+extern u8 serial_connect_flag;
 
 const char LCD_UI_Table[]={
                           0x04,0x0a,0x0a,0x0a,0x0a,0x11,0x11,0x0e,//hotheat               
@@ -2227,6 +2220,8 @@ void display_refresh(void)
           else if(strcmp(name,"Cooldown")==0)
           {
             Set_All_Fan_Power(FULL_POWER);
+            Setting.targe_temperature[NOZZLE0] = 0; 
+            Setting.targe_temperature[BED] = 0; 
             page_go_info();
           }      
      

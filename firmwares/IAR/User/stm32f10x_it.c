@@ -48,6 +48,7 @@
 #include "Dgus_screen.h"
 #include "variable.h"
 #include "data_handle.h"
+#include "mmc_sd.h"	
 
 
 int page_refresh_count;
@@ -55,7 +56,7 @@ u8 TransferError_flag=0;
 static u8 E0_Moter_Constrol_Flag=0;
 
 extern __IO SD_Error TransferError;     
-extern u8 serial_connect_flag ,serial_connect_flag3 , serial_print_flag;
+extern u8 serial_connect_flag ,serial_connect_flag3 ;
 extern autohome_st Autohome;
 
 u32 System_time = 0;
@@ -302,7 +303,7 @@ void TIM6_IRQHandler(void)
     /*temperature control function*/
     Temperature_Handler();
     Delay_Times_ms++;
-#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) 
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
     if(File_DownST.File_Flag==1)
     {
         Usart_Times++;
@@ -332,7 +333,7 @@ void TIM7_IRQHandler(void)
 	TIM_ClearITPendingBit(TIM7,TIM_IT_Update);
 
     
-#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) 
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S)  || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 
        System_time++;
        system_infor.Motor_Disable_Times++;
@@ -362,7 +363,7 @@ void TIM7_IRQHandler(void)
 	}
 #endif
 }
-#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) 
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 void TIM5_IRQHandler(void)     //20160627
 {    
     TIM_ClearITPendingBit(TIM5,TIM_IT_Update);
@@ -493,7 +494,7 @@ void TIM8_UP_IRQHandler(void)
 
 
 
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
 /**********************************************************
 ***Function:     EXTI4_IRQHandler
 ***Description: A30 printer Power off operation,Save renewal data
@@ -503,6 +504,7 @@ void TIM8_UP_IRQHandler(void)
 ***********************************************************/
 void EXTI4_IRQHandler(void)
 { 
+#if 0
  	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{ 
 	    delay_us(2); 
@@ -517,7 +519,7 @@ void EXTI4_IRQHandler(void)
 	    }
 		
 	}
-
+#endif
 	EXTI_ClearITPendingBit(EXTI_Line4);
 }
 #elif BOARD_E180_MINI_S
@@ -599,15 +601,17 @@ void USART1_IRQHandler(void)
         if(USART_GetITStatus(USART1,USART_IT_RXNE) != RESET)
         {  
             uart_ch = USART_ReceiveData(USART1);
+
+         USART_SendData(USART1, (unsigned char) uart_ch);
+         while (!(USART1->SR & USART_FLAG_TXE));
+            
             if(((uart_buff_end + 1) % UART_BUFF_SIZE) == uart_buff_start)
             return;
             uart_buff[uart_buff_end] = uart_ch;
             uart_buff_end = (uart_buff_end + 1) % UART_BUFF_SIZE;
-#ifndef BOARD_M301_Pro_S
             if(File_DownST.File_Flag==1)
             Usart_Times=0;
             else
-#endif
             {
                 if(uart_ch == '\n' || uart_ch == '\r')
                 {
@@ -630,7 +634,7 @@ void USART1_IRQHandler(void)
 }
 
 
-#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) 
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_E180_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 /**********************************************************
 ***Function:     USART3_IRQHandler
 ***Description: Serial port 3 accepts data processing functions, Accept LCD screen data and process
@@ -648,7 +652,7 @@ void USART3_IRQHandler(void)
 		if(((uart_buff_end3 + 1) % UART3_BUFF_SIZE) == uart_buff_start3)
 			return;
                
-        // USART_SendData(USART1, (unsigned char) uart_ch);
+       //  USART_SendData(USART1, (unsigned char) uart_ch);
         // while (!(USART1->SR & USART_FLAG_TXE));
          
 		uart_buff3[uart_buff_end3] = uart_ch;
@@ -691,7 +695,7 @@ void USART2_IRQHandler(void)
 	 if(wifi_status==1)
 	   return; 
 	 
-	 //USART_SendData(USART1, (unsigned char) uart_ch);
+	// USART_SendData(USART1, (unsigned char) uart_ch);
        // while (!(USART1->SR & USART_FLAG_TXE));
 		 
         if(WIFI_MODE==WIFI_HANDLE_DATA)

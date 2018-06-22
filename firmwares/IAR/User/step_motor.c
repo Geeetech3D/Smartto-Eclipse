@@ -49,6 +49,9 @@ extern volatile long count_position[NUM_AXIS];
 volatile s8 count_direction[NUM_AXIS] = { 1, 1, 1, 1};
 
 static u8 Motor_Enable_Flag;
+u8 Filament_Change_Flag=0;
+u8 Filament_E0_Change_Flag=0;//0:不改变；1:退料；2:进料；
+u8 Filament_E1_Change_Flag=0;
 //u8 autohome_flag = 0;
 
 //================================by Chilyn======================================//
@@ -173,9 +176,19 @@ void Trapezoid_Generator_Reset()
 void Step_Motor_Control(void)
 {  
     u16 Axis_Dir_Step_PORT =0;
+#ifdef BOARD_A30M_Pro_S
+    if(Filament_E0_Change_Flag==1||Filament_E0_Change_Flag==2 ||Filament_E1_Change_Flag==1||Filament_E1_Change_Flag==2)
+    {
+        Filament_Processing();
+        return;
+    }
+#endif
     if(Current_Block == NULL)
     {
         Current_Block = Get_current_block();
+#ifdef BOARD_A30M_Pro_S      
+        Mixer_Change();
+#endif
         if(Current_Block != NULL)
         {
             if(Current_Block->tools_chang_flag)
@@ -292,6 +305,9 @@ void Step_Motor_Control(void)
                 if(Setting.motor_direction[Z_AXIS] == POSITIVE)
                 {
                     Z_DIR_L;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                    E2_DIR_L ;
+#endif
 #ifdef ENABLE_AUTO_BED_LEVELING
                     count_direction[Z_AXIS]=-1;
 #endif
@@ -299,6 +315,9 @@ void Step_Motor_Control(void)
                 else
                 {
                     Z_DIR_H;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                    E2_DIR_H; 
+#endif
 #ifdef ENABLE_AUTO_BED_LEVELING
                     count_direction[Z_AXIS]=1;
 #endif
@@ -309,6 +328,9 @@ void Step_Motor_Control(void)
                 if(Setting.motor_direction[Z_AXIS] == POSITIVE)
                 {
                     Z_DIR_H;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                    E2_DIR_H; 
+#endif
 #ifdef ENABLE_AUTO_BED_LEVELING
                     count_direction[Z_AXIS]=1;
 #endif
@@ -316,6 +338,9 @@ void Step_Motor_Control(void)
                 else
                 {
                     Z_DIR_L;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
+                    E2_DIR_L ;
+#endif
 #ifdef ENABLE_AUTO_BED_LEVELING
                     count_direction[Z_AXIS]=-1;
 #endif
@@ -346,6 +371,21 @@ void Step_Motor_Control(void)
                 else
                     E2_DIR_L;
             }
+#elif (BOARD_A30M_Pro_S || BOARD_A30D_Pro_S) 
+            if(nozzle_select == NOZZLE0)
+            {
+                if(Setting.motor_direction[E_AXIS] == POSITIVE)
+                    E0_DIR_H;
+                else
+                    E0_DIR_L;
+            }
+            else if(nozzle_select == NOZZLE1)
+            {
+                if(Setting.motor_direction[E1_AXIS] == POSITIVE)    
+                    E1_DIR_H;
+                else
+                    E1_DIR_L;
+            }
 #else
                 if(Setting.motor_direction[E_AXIS] == POSITIVE)
                     E0_DIR_H;
@@ -356,7 +396,7 @@ void Step_Motor_Control(void)
             else
             {
 #ifdef BOARD_M301_Pro_S 
-if(nozzle_select == NOZZLE0)
+            if(nozzle_select == NOZZLE0)
             {
                 if(Setting.motor_direction[E_AXIS] == POSITIVE)
                     E0_DIR_L;
@@ -376,7 +416,22 @@ if(nozzle_select == NOZZLE0)
                     E2_DIR_L;
                 else
                     E2_DIR_H;
-            }        
+            }  
+#elif (BOARD_A30M_Pro_S || BOARD_A30D_Pro_S) 
+            if(nozzle_select == NOZZLE0)
+            {
+                if(Setting.motor_direction[E_AXIS] == POSITIVE)
+                    E0_DIR_L;
+                else
+                    E0_DIR_H;
+            }
+            else if(nozzle_select == NOZZLE1)
+            {
+                if(Setting.motor_direction[E1_AXIS] == POSITIVE)  
+                    E1_DIR_L;
+                else
+                    E1_DIR_H;
+            }
 #else
                 if(Setting.motor_direction[E_AXIS] == POSITIVE)
                     E0_DIR_L;
@@ -422,6 +477,9 @@ if(nozzle_select == NOZZLE0)
             if(Z_Error_Coefficient > 0)
             {
                 Z_STEP_H;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
+                E2_STEP_H; 
+#endif
                 Z_Error_Coefficient -= Current_Block->step_event_count;
 #ifdef ENABLE_AUTO_BED_LEVELING
                 count_position[Z_AXIS]+=count_direction[Z_AXIS];
@@ -430,18 +488,17 @@ if(nozzle_select == NOZZLE0)
             E_Error_Coefficient += Current_Block->steps_e;
             if(E_Error_Coefficient > 0)
             {
-#ifdef BOARD_M301_Pro_S 
+#if (defined BOARD_M301_Pro_S )||(defined BOARD_A30M_Pro_S ) || (defined BOARD_A30D_Pro_S)
         color_control();
         Nozzle_Select();  
-        
         if(nozzle_select == NOZZLE0)
             E0_STEP_H;
         else if(nozzle_select == NOZZLE1)
             E1_STEP_H;
+#ifdef BOARD_M301_Pro_S
         else if(nozzle_select == NOZZLE2)
             E2_STEP_H;
-
-		
+#endif
         E_Error_Coefficient -= Current_Block->step_event_count;
 #else
                 E0_STEP_H;
@@ -452,13 +509,18 @@ if(nozzle_select == NOZZLE0)
             X_STEP_L;
             Y_STEP_L;
             Z_STEP_L;
-#ifdef BOARD_M301_Pro_S 
+#if (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
+        E2_STEP_L; 
+#endif
+#if (defined BOARD_M301_Pro_S )||(defined BOARD_A30M_Pro_S )  || (defined BOARD_A30D_Pro_S)
 		if(nozzle_select == NOZZLE0)       
           E0_STEP_L;
       else if(nozzle_select == NOZZLE1)
 	  E1_STEP_L;
+#ifdef BOARD_M301_Pro_S
       else if(nozzle_select == NOZZLE2)
           E2_STEP_L;
+#endif
 #else
             E0_STEP_L;
 #endif
@@ -525,22 +587,133 @@ void Disable_all_Axis(void)
     Block_clean();
     Current_Block_Clean();
 }
-#ifdef BOARD_M301_Pro_S   
+#if  (defined BOARD_M301_Pro_S)||(defined BOARD_A30M_Pro_S)   || (defined BOARD_A30D_Pro_S)
 void Mixer_Init(void)
 {
-  mixer.max = Setting.mixer_ofp_max;
-  mixer.min = Setting.mixer_ofp_min;
+    mixer.max = Setting.mixer_ofp_max;
+    mixer.min = Setting.mixer_ofp_min;
 
-  mixer.rate[NOZZLE0] = mixer.max;   
-  mixer.rate[NOZZLE1] = mixer.min;
-  
-#if defined(EXTRUDER_3IN1)  
-  mixer.rate[NOZZLE2] = mixer.min;
+//#ifdef BOARD_A30M_Pro_S
+    mixer.rate[NOZZLE0] = mixer.max;   
+    mixer.rate[NOZZLE1] = mixer.min;
+/*
+#else
+    if(Setting.mixer_ofp>mixer.min)
+    {
+        mixer.rate[NOZZLE0] = Setting.mixer_ofp;   
+        mixer.rate[NOZZLE1] = 100 -Setting.mixer_ofp;
+    }
+    else
+    {
+        mixer.rate[NOZZLE0] = mixer.max;   
+        mixer.rate[NOZZLE1] = mixer.min;
+    }
 #endif
-  
-  mixer.counts = 0;
+*/
+  printf("N0:%d\r\n",mixer.rate[NOZZLE0]);
+#if defined(EXTRUDER_3IN1)  
+    mixer.rate[NOZZLE2] = mixer.min;
+#endif
+
+    mixer.counts = 0;
 
 }
+
+void Mixer_Change(void)
+{
+    if(Filament_Change_Flag !=0)
+    {
+        mixer.rate[NOZZLE0] = mixer.rate_buf[NOZZLE0];   
+        mixer.rate[NOZZLE1] = mixer.rate_buf[NOZZLE1];
+        Filament_Change_Flag=0;
+        Add_Message(24);
+        if(mixer.rate[NOZZLE0]<=0&&Filament_E0_Change_Flag!=3)
+            Filament_E0_Change_Flag=1;
+        else if(mixer.rate[NOZZLE0]>0&&Filament_E0_Change_Flag==3)
+            Filament_E0_Change_Flag=2;
+
+        if(mixer.rate[NOZZLE1]<=0&&Filament_E1_Change_Flag!=3)
+            Filament_E1_Change_Flag=1;
+        else if(mixer.rate[NOZZLE1]>0 && Filament_E1_Change_Flag ==3)
+            Filament_E1_Change_Flag=2;
+
+    }
+
+}
+void Filament_Processing(void)
+{
+    static u16 E0_Steps=0,E1_Steps=0;
+    if(Filament_E0_Change_Flag==1)
+    {
+        if(mixer.rate[NOZZLE0] >0)
+        {
+            Filament_E0_Change_Flag=0;
+            E0_Steps=0;
+        }
+        E0_Steps++;
+        E0_DIR_H;
+        E0_STEP_H;
+        E0_STEP_L;
+
+    }
+    else if(Filament_E0_Change_Flag==2)
+    {
+        if(mixer.rate[NOZZLE0] <100)
+        {
+            Filament_E0_Change_Flag=0;
+            E0_Steps=0;
+        }
+        E0_Steps++;
+        E0_DIR_L;
+        E0_STEP_H;
+        E0_STEP_L;
+
+    }
+    if(Filament_E1_Change_Flag==1)
+    {
+        if(mixer.rate[NOZZLE1] >0)
+        {
+            Filament_E1_Change_Flag=0;
+            E1_Steps=0;
+        }
+        E1_Steps++;
+        E1_DIR_L;
+        E1_STEP_H;
+        E1_STEP_L;
+
+    }
+    else if(Filament_E1_Change_Flag==2)
+    {
+        if(mixer.rate[NOZZLE1] <100)
+        {
+            Filament_E1_Change_Flag=0;
+            E1_Steps=0;
+        }
+        E1_Steps++;
+        E1_DIR_H;
+        E1_STEP_H;
+        E1_STEP_L;
+
+    }
+    if(E0_Steps>1600)
+    {
+        if(Filament_E0_Change_Flag==1)
+            Filament_E0_Change_Flag=3;
+        else
+            Filament_E0_Change_Flag=0;
+       E0_Steps=0;
+    }
+    if(E1_Steps>1600)
+    {
+        if(Filament_E1_Change_Flag==1)
+            Filament_E1_Change_Flag=3;
+        else
+            Filament_E1_Change_Flag=0;
+        E1_Steps=0;
+    }
+    
+}
+
 void Color_change(u8 start_p,u8 end_p,float start_h, float end_h)
 {
   float thickness;
@@ -667,6 +840,14 @@ void color_control(void)
         start_h =     Setting.custom_conf_start_height[CUSTOM_6-1];
         end_h   =     Setting.custom_conf_end_height[CUSTOM_6-1];
         break;
+      case 15:
+        {
+            start_p = (u8)mixer.min;
+            end_p = (u8)mixer.max;
+            start_h = Setting.custom_conf_start_height[0];
+            end_h = start_h + 20;
+        }
+        break;
     default: return;
     }
     Color_change(start_p, end_p, start_h, end_h);
@@ -707,7 +888,7 @@ u8 Max_Divisor(u8 a, u8 b)
   }
   return a;
 }
-#ifdef BOARD_M301_Pro_S   
+#if  (defined BOARD_M301_Pro_S)||(defined BOARD_A30M_Pro_S)    || (defined BOARD_A30D_Pro_S)
 static void Nozzle_Select(void)
 {
   u8 div;

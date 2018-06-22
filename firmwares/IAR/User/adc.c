@@ -1,30 +1,3 @@
-/*
- * Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech¡¯s Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible. 
- * Meanwhile we encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * There is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not applicable to them.
- * Under this condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet these needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- * Geeetech commits itself to promoting the open source spirit. 
-*/
-
-
-
 #include "XZK_Configuration.h"
 #include "temperature_table.h"
 #include "adc.h"
@@ -74,8 +47,8 @@ static void ADC_GPIO_Config(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
-#ifdef BOARD_M301_Pro_S  
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE); 
+#if (defined BOARD_M301_Pro_S) || (defined BOARD_A30M_Pro_S)|| (defined BOARD_A30D_Pro_S)
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_5;
 #else
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3;// | GPIO_Pin_5
@@ -122,6 +95,7 @@ static void ADC_Mode_Config(void)
 	RCC_ADCCLKConfig(RCC_PCLK2_Div8);
         
 
+
 	ADC_RegularChannelConfig(ADC1,ADC_Channel_12,1,ADC_SampleTime_239Cycles5);
 	ADC_RegularChannelConfig(ADC1,ADC_Channel_11,2,ADC_SampleTime_239Cycles5);
 	ADC_RegularChannelConfig(ADC1,ADC_Channel_10,3,ADC_SampleTime_239Cycles5);
@@ -159,7 +133,7 @@ static void Temperature_PWM_GPIO_Config(void)
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOB,&GPIO_InitStructure);  
   
-#ifdef BOARD_M301_Pro_S  
+#if (defined BOARD_M301_Pro_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
   GPIO_PinRemapConfig(GPIO_PartialRemap2_TIM2, ENABLE);
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 ;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -715,6 +689,9 @@ void Close_all_hotend(void)
    SET_FAN2_SPEED(0);
    Disable_Y_Axis();
    Disable_Z_Axis();
+#ifdef BOARD_A30M_Pro_S
+        Disable_E2_Axis() ;
+#endif
    Disable_E0_Axis();
 }
 

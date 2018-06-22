@@ -185,7 +185,7 @@ void Read_endstop(void)
   else signal[Y_AXIS] = GPIO_ReadInputDataBit(Endstop,Max_Y);
 
   if(Setting.home_position[Z_AXIS] == MINENDSTOP) signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Min_Z);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 	#ifdef CC_3D_Touch
 		else signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Max_Z);
 	#else
@@ -213,13 +213,13 @@ void Endstop_Level_Init(u8 axis, u8 endstop)
 {
     if(Setting.endstop_level[endstop] == HIGH)   
     {
-        normal_end_signal[axis]=0;
-        touch_end_signal[axis]=1;
+        normal_end_signal[axis]=1;
+        touch_end_signal[axis]=0;
     }
     else
     {
-        normal_end_signal[axis]=1;
-        touch_end_signal[axis]=0;
+        normal_end_signal[axis]=0;
+        touch_end_signal[axis]=1;
     }
 }
 
@@ -298,15 +298,25 @@ void Endstop_Handler(void)
 u8 get_endstop_state(u8 axis, u8 end_position)
 {
 	u8 state;
+#ifdef BOARD_E180_MINI_S
+	if((axis == X_AXIS)&&(end_position == MINENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Min_X);
+	else if((axis == X_AXIS)&&(end_position == MAXENDSTOP)) state = 1;//GPIO_ReadInputDataBit(Endstop,Max_X);
+	else if((axis == Y_AXIS)&&(end_position == MINENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Min_Y);
+	else if((axis == Y_AXIS)&&(end_position == MAXENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Max_Y);
+	else if((axis == Z_AXIS)&&(end_position == MINENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Min_Z);
+	else if((axis == Z_AXIS)&&(end_position == MAXENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Max_Z);   
+       state =!state;
+#else
 	if((axis == X_AXIS)&&(end_position == MINENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Min_X);
 	else if((axis == X_AXIS)&&(end_position == MAXENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Max_X);
 	else if((axis == Y_AXIS)&&(end_position == MINENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Min_Y);
 	else if((axis == Y_AXIS)&&(end_position == MAXENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Max_Y);
 	else if((axis == Z_AXIS)&&(end_position == MINENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Min_Z);
 	else if((axis == Z_AXIS)&&(end_position == MAXENDSTOP)) state = GPIO_ReadInputDataBit(Endstop,Max_Z);   
+#endif
 	return state;
 }
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 void BLTouch_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;          
@@ -423,21 +433,28 @@ void Read_filamentstatus(void)
 
 u8 Get_FilamentStatus(void)
 {
-        static u8 filament_statuss=0;
+        static u8 filament_statuss=0,filament_statuss2;
        if(filament_status==1 && filament_statuss<3)
        {
 
             if(system_infor.Filament_Dev_Flag==0)
 		    return 0;
+           // filament_status =0;
 	    Add_Message(FILAMENT_DETECTOR);	
 	    Add_MessageM(CMD_FILAMAND_NO);
-	    filament_status =0;
+	    filament_statuss2 =0;
 	    filament_statuss++;
 	    printf("filament:erro.....\r\n");
 	    return 1;
        }
        else
        {
+            if(filament_statuss2<3)
+            {
+                filament_statuss =0;
+                filament_statuss2++;
+                Add_Message(FILAMENT_DETECTOR);	
+            }
             return 0;
        }
 	

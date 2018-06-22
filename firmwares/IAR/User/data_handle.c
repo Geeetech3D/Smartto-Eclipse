@@ -1,40 +1,11 @@
-
-/*
- * Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech¡¯s Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible. 
- * Meanwhile we encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * There is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not applicable to them.
- * Under this condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet these needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- * Geeetech commits itself to promoting the open source spirit. 
-*/
-
-
-
-
 #include "data_handle.h"
 #include "XZK_Configuration.h"
 #include "Setting.h"
 #include "wifi.h"
 #include "variable.h"
+#include "step_motor.h"
 
-
-
+  extern mixer_t mixer;
 extern char Upload_DataS[512];
 #define QUEUE_LEN   30
 u8 message_queue[QUEUE_LEN]={0};
@@ -49,7 +20,7 @@ extern WIFI_MESSAGE Wifi_Work_Message;
 
 #endif
 
-extern u8 WIFI_Bebug_Flag,Temp_exception_flag,Firmware_Updata_Flag;
+extern u8 WIFI_Bebug_Flag,Temp_exception_flag,Firmware_Updata_Flag,Sum_layers_flag,filament_status;
 extern setting_t Setting;
 extern Systembuf_Info  Systembuf_Infos;
 extern char Firmware_version[9];
@@ -90,9 +61,16 @@ void  Updata_To_LCD(u8 item)
 	memset(Upload_DataS,0,512);
 	switch(item)
 	{
+#ifdef BOARD_A30D_Pro_S
+	       case TEMPERATURE_INFO://temperture
+	       if(Setting.targe_temperature[NOZZLE0]>0)
+			sprintf(Upload_DataS,"<AUTO_UD:NS:%.1f;NC:%.1f;N1S:%.1f;N1C:%.1f;BS:%.1f;BC:%.1f;*>\r\n",Setting.targe_temperature[NOZZLE0],Current_Temperature[NOZZLE0],Setting.targe_temperature[NOZZLE1],Current_Temperature[NOZZLE1],Setting.targe_temperature[BED],Current_Temperature[BED]);
+		break;
+#else
 	       case TEMPERATURE_INFO://temperture
 			sprintf(Upload_DataS,"<AUTO_UD:NS:%.1f;NC:%.1f;BS:%.1f;BC:%.1f;*>\r\n",Setting.targe_temperature[NOZZLE0],Current_Temperature[NOZZLE0],Setting.targe_temperature[BED],Current_Temperature[BED]);
 		break;
+#endif
 		case PRINTER_SD_STATUS: //printer and SD status
 			if(system_infor.serial_printf_flag == 1)
 				sprintf(Upload_DataS,"<AUTO_UD:ST:9;SD:%d;*>\r\n",system_infor.sd_status);
@@ -108,8 +86,14 @@ void  Updata_To_LCD(u8 item)
 		break;
 		/////////
 		case RATE_FAN_LAYER://Layers, progress, speed
-			sprintf(Upload_DataS,"<AUTO_UD:FR:%d;CL:%d;SL:%d;PP:%.2f;*>\r\n",system_infor.feed_tare,(u16)((Current_Position[Z_AXIS]/layer_high)),Sum_layers,system_infor.print_percent);
-		break;
+#if (defined BOARD_A30D_Pro_S ) ||(defined BOARD_A30M_Pro_S )
+                if(system_infor.print_percent>0)
+			 sprintf(Upload_DataS,"<AUTO_UD:FR:%d;PP:%.2f;*>\r\n",system_infor.feed_tare,system_infor.print_percent);
+#else
+		      if(Sum_layers_flag == 1 &&system_infor.print_percent>0)
+			 sprintf(Upload_DataS,"<AUTO_UD:FR:%d;CL:%d;SL:%d;PP:%.2f;*>\r\n",system_infor.feed_tare,(u16)((Current_Position[Z_AXIS]/layer_high)),Sum_layers,system_infor.print_percent);
+#endif
+        break;
 		case PRINTING_STATUS://GCODE
 			sprintf(Upload_DataS,"<AUTO_UD:ST:2;GC:%s;*>\r\n",&Systembuf_Infos.printer_file_path[5]);
 		break;
@@ -127,8 +111,10 @@ void  Updata_To_LCD(u8 item)
 			sprintf(Upload_DataS,"<AUTO_UD:FF:%d;*>\r\n",system_infor.Filament_Dev_Flag);
 		break;
 		case FILAMENT_DETECTOR://no filament
-			sprintf(Upload_DataS,"<AUTO_UD:FT:1;*>\r\n");
+			sprintf(Upload_DataS,"<AUTO_UD:FT:%d;*>\r\n",(filament_status));
+            printf("KKK:%s\r\n",Upload_DataS);
 		break;
+        
 		case TEMP_EXCEPTION://exception temperature
 			sprintf(Upload_DataS,"<AUTO_UD:EX:%d;*>\r\n",Temp_exception_flag); //Add_Message(FILAMENT_DETECTOR);
 		break;
@@ -150,6 +136,9 @@ void  Updata_To_LCD(u8 item)
 		case LCD_VERSION_INFO:
 			sprintf(Upload_DataS,"<AUTO_UD:VS:1;*>\r\n");
 			break;
+            case MIXER_RATE:
+                sprintf(Upload_DataS,"<AUTO_UD:NF:%d;*>\r\n",mixer.rate[NOZZLE0]);
+                break;
 #ifdef WIFI_MODULE
             	case WIFI_IP_MESSAGE: //ip
 			sprintf(Upload_DataS,"<AUTO_UD:WFIP:%s;*>\r\n",Wifi_Work_Message.Router_IP);
@@ -186,6 +175,7 @@ void  Updata_To_LCD(u8 item)
 	}
     if(Firmware_Updata_Flag!=1)
 	USART3_printf(Upload_DataS);
+   // printf("GG:%s\r\n",Upload_DataS);
 }
 
 
@@ -206,7 +196,7 @@ void ADD_Item_to_LCD(void)
         if(Timess%60==0)
         {
         }
-        else if(Timess%20==0)
+        else if(Timess%50==0)
         {
             Add_Message(TEMPERATURE_INFO);
         }
@@ -217,17 +207,20 @@ void ADD_Item_to_LCD(void)
     }
     else
     {
-        if(Timess%60==0)
+        if((Current_Temperature[NOZZLE0]<Setting.targe_temperature[NOZZLE0]) && (Setting.targe_temperature[NOZZLE0]-Current_Temperature[NOZZLE0])<3)
         {
-            Add_Message(PRINTING_STATUS);
-        }
-        else if(Timess%20==0)
-        {
-            Add_Message(RATE_FAN_LAYER);
-        }
-        else if(Timess%3==0)
-        {
-            
+            if(Timess%90==0)
+            {
+                Add_Message(PRINTING_STATUS);
+            }
+            else if(Timess%50==0)
+            {
+                Add_Message(RATE_FAN_LAYER);
+            }
+            else if(Timess%3==0)
+            {
+                
+            }
         }
     }
 }

@@ -38,17 +38,21 @@ typedef struct
   float delta_radius;
   float delta_radius_error;  
   float delta_printable_radius;
+#endif 
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S) 
   float endstop_adj[3];
   u16 Preheat_conf[2][3];
   u8 fanspeed;
   float z_offset;
+  u8 mixer_ofp; 
   u8 mixer_ofp_min;    //percentage for mixer over fusion protect
   u8 mixer_ofp_max;
   u8 custom_conf_start_percent[6];
   u8 custom_conf_end_percent[6];
   float custom_conf_start_height[6];
   float custom_conf_end_height[6];
-#endif 
+#endif
+  
   u16 extrude_multiply;                                //The multiple of discharge
   u32 min_segment_steps;                           //The minimum number of moves
   u32 min_segment_time;                           //The minimum frequency of printing

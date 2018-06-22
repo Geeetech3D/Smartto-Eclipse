@@ -1,27 +1,3 @@
-/*
- * Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech¡¯s Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible. 
- * Meanwhile we encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * There is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not applicable to them.
- * Under this condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet these needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- * Geeetech commits itself to promoting the open source spirit. 
-*/
 
 #include "stm32f10x.h"
 #include "stm32f10x_gpio.h"
@@ -228,6 +204,10 @@ void  Hardware_Init(void)
 	Enable_Encoder_EXTI(); 
 	page_init();                     //LCD2004
        PVD_Init();
+#elif BOARD_A30M_Pro_S
+    Mixer_Init();  //Three input and one parameter initialization
+#elif BOARD_A30D_Pro_S
+    Mixer_Init();  //Three input and one parameter initialization
 #endif
     Fan_Control_Enable();    //Fan control pin initialization
     Voltage_detect();   
@@ -243,6 +223,7 @@ void  Hardware_Init(void)
 
     Recovery_GPIO_Config();  //Power off detection pin initialization
     system_data_init();
+    Add_Message(PRINTER_MESSAGE);
 }
 /**********************************************************
 ***Function:     SystemData_Init
@@ -257,11 +238,12 @@ void SystemData_Init(void)
     Wifi_Init_Config();      //wifi init
     NVIC_EnableIRQ(USART2_IRQn);
 #endif
-
+    
 #ifndef BOARD_M301_Pro_S
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_EnableIRQ(USART3_IRQn);
     Get_Store_Date();
+    Recovery_process();  //Continue printing gcode file processing
 
     Add_Message(PRINTER_RESET);
     Set_Beep(1000,127);
@@ -271,12 +253,12 @@ void SystemData_Init(void)
     Set_Beep(1000,127);
     Set_Beep(1000,127);
     delay_ms(600);
-    
+
 #ifdef WIFI_MODULE
     WIF_EXIST_TEST();   //Get WiFi version
 #endif
-    Recovery_process();  //Continue printing gcode file processing
 #else
+    Recovery_process();  //Continue printing gcode file processing
     NVIC_EnableIRQ(USART1_IRQn);
 #endif
 }

@@ -279,15 +279,24 @@ void AddData_To_ConfigFile(void)
     char str[256]  ;
     res = f_open(&fnew3,"SD1:/config.txt", FA_CREATE_ALWAYS|FA_WRITE); 
     sprintf(str,"boot:1;file_path:%s;",file_NM);
+    //printf("%s\r\n",str);
     if(res == FR_OK)
     {
+       // printf("open config file OK\r\n");
         f_lseek(&fnew3,0);
         res = f_write(&fnew3,str, strlen(str), &bw); 
         if(res==FR_OK)
         {
             f_close(&fnew3);
+           // printf("write config file OK\r\n");
         }
+        //else
+       // {
+       //     printf("write config file error\r\n");
+       // }
     }
+   // else
+     //   printf("open config file error\r\n");
     f_close(&fnew3);
 }
 

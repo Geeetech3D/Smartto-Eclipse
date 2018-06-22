@@ -1,33 +1,3 @@
-/*
- * Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech¡¯s Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible. 
- * Meanwhile we encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * There is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not applicable to them.
- * Under this condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet these needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- * Geeetech commits itself to promoting the open source spirit. 
-*/
-
-/*
-for TFT 4.3 inch LCD, used on geeetech D200 3d printer
-*/
-
-
 
 #include "LCD2004.h"
 #include "command.h"
@@ -166,7 +136,7 @@ float  Input_Leveling_Page(void)
 {
         if(system_infor.sd_print_status == SD_PRINT_IDLE && system_infor.serial_printf_flag != 1)
 	{
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
                 new_Z_Max_Position = Setting.zz_offset;
                 Setting.zz_offset=0.0;
                 command_process("G28\r\n");
@@ -202,7 +172,7 @@ float Leveling_Page_Zadjust(u8 tt)
             command_process(com_cpy);
 	     strcpy(com_cpy,"G1 Z0\r\n");         
             command_process(com_cpy);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
             new_Z_Max_Position -= 0.5;
 #elif BOARD_E180_MINI_S
             new_Z_Max_Position += 0.5;
@@ -219,7 +189,7 @@ float Leveling_Page_Zadjust(u8 tt)
             command_process(com_cpy);
 	    strcpy(com_cpy,"G92 Z0\r\n");         
             command_process(com_cpy);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
             new_Z_Max_Position += 0.5;
 #elif BOARD_E180_MINI_S
             new_Z_Max_Position -= 0.5;
@@ -233,7 +203,7 @@ float Leveling_Page_Zadjust(u8 tt)
             command_process(com_cpy);
 	     strcpy(com_cpy,"G1 Z0\r\n");         
             command_process(com_cpy);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 	    new_Z_Max_Position -= 0.05;
 #elif BOARD_E180_MINI_S
 	    new_Z_Max_Position += 0.05;
@@ -250,7 +220,7 @@ float Leveling_Page_Zadjust(u8 tt)
             command_process(com_cpy);
 	    strcpy(com_cpy,"G92 Z0\r\n");         
             command_process(com_cpy);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
             new_Z_Max_Position += 0.05;
 #elif BOARD_E180_MINI_S
             new_Z_Max_Position -= 0.05;
@@ -293,7 +263,7 @@ u8 Leveling_Page_ChoosePi(u8 num)
     float x=0.0,y=0.0;
     switch(num)
     {
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
         case 1:
             x=0.8;y=0.8;
             break;
@@ -329,7 +299,7 @@ u8 Leveling_Page_ChoosePi(u8 num)
         default :return -1 ;break;
     }
             Set_Beep(1000,127);
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 	     sprintf(com_cpy,"G1 Z10 F500\r\n");         
             command_process(com_cpy);
             sprintf(com_cpy,"G1 X%.2f Y%.2f F1800\r\n", Setting.max_position[X_AXIS]*x, Setting.max_position[Y_AXIS]*y);       
@@ -352,7 +322,7 @@ u8 Leveling_Page_ChoosePi(u8 num)
 }
 void Leveling_Page_SaveZ(void)
 {
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
        Setting.zz_offset = new_Z_Max_Position;
        printf("Setting.zz_offset = %f\r\n",Setting.zz_offset);
 #elif BOARD_E180_MINI_S

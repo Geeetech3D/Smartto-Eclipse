@@ -197,11 +197,12 @@
 static float Current_Feedrate,saved_feedrate;
 static float Previous_Feedrate;
 static u16 saved_feedmultiply;
-static u8 Current_Active_Extruder;
+static u8 Current_Active_Extruder,Sum_layers_flag;
 static bool Gloabl_axis_go_origin_flag;
 static bool Gloabl_axis_reset_coordinate_flag;
 static float offset[3]; 
 static float Arc_r; 
+
 
 static u8 targeted_hotend;
 static u8 Up_Data_Flag =0;
@@ -214,7 +215,7 @@ char *Strchr_Pointer;
 u8   Coordinate_Axias[] = {'X','Y','Z','E'};
 char DIR_Axias[6][5] = {"X ", "Y ", "Z ", "E0 ", "E1 ", "E2 "};
 const char Gcode[3] = {'G','M','T'};
-extern u8 SD_detec_flag;
+extern u8 SD_detec_flag,Filament_Change_Flag ;
 extern char sd_file_namebuf[FILE_NUM][FILE_NAME_SIZE];//sd_file_namebuf[255][50];
 
 
@@ -222,13 +223,21 @@ extern char sd_file_namebuf[FILE_NUM][FILE_NAME_SIZE];//sd_file_namebuf[255][50]
 long gcode_N = 0;
 #ifdef BOARD_A30_MINI_S
   int servo_endstops[] = SERVO_ENDSTOPS;
-  char Firmware_version[9]="V1.00.58";
+  char Firmware_version[9]="V1.00.59";
 #elif BOARD_E180_MINI_S
-  char Firmware_version[9]="V1.00.40";
+  char Firmware_version[9]="V1.00.41";
 #elif BOARD_M301_Pro_S
   char Firmware_version[9]="V1.0.05";
-
-
+#elif BOARD_A30M_Pro_S
+  char Firmware_version[9]="V1.00.01";
+  int servo_endstops[] = SERVO_ENDSTOPS;
+  extern mixer_t mixer;
+  extern u8 color_change_flag;
+#elif BOARD_A30D_Pro_S
+  char Firmware_version[9]="V1.0.01";
+  int servo_endstops[] = SERVO_ENDSTOPS;
+  extern mixer_t mixer;
+  extern u8 color_change_flag;
 #endif
 extern autohome_st Autohome;
 extern char sd_file_name[32][50];
@@ -307,6 +316,10 @@ typedef struct UPLOAD_DATA {
 	u8 current_MTstatus;
 	float current_targeNozzle_temperature;
 	float current_CurrentNozzle_temperature;
+#ifdef BOARD_A30D_Pro_S
+	float current_targeNozzle1_temperature;
+	float current_CurrentNozzle1_temperature;
+#endif
 	float current_targebed_temperature;
 	float current_Currentbed_temperature;
 	u16 current_rate;
@@ -323,6 +336,9 @@ typedef struct UPLOAD_DATA {
 	u8 auto_levele_flags;
 	u8 filament_decetion_statue;
 	u8 filament_OFF_ON;
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
+       u8 mixer_rate;
+#endif
 }AUTO_UPLOAD_DATA;
 
 static AUTO_UPLOAD_DATA auto_upload_datas;
@@ -347,7 +363,7 @@ u8 Add_Upload_data(void)
 	memset(str_updata,0,30);
 	sprintf(str_updata,"<AUTO_UD:");
 	strncat(Upload_DataS, str_updata, 30);  
-	
+	static u8 temp_times=0;
 	
 	if(system_infor.serial_printf_flag != 1) //Printer status
 	{
@@ -374,6 +390,7 @@ u8 Add_Upload_data(void)
 				auto_upload_datas.current_x=Current_Position[X_AXIS];
 				sprintf(str_updata,"XP:%.2f;",Current_Position[X_AXIS]);
 				strncat(Upload_DataS, str_updata, 30);  
+                                Add_Message(COORDINATE_XYZ);
 				ret=1;
 			}
 			if(abs((int)((auto_upload_datas.current_y-Current_Position[Y_AXIS])*100))>2)
@@ -382,6 +399,7 @@ u8 Add_Upload_data(void)
 				auto_upload_datas.current_y=Current_Position[Y_AXIS];
 				sprintf(str_updata,"YP:%.2f;",Current_Position[Y_AXIS]);
 				strncat(Upload_DataS, str_updata, 30);  
+                                Add_Message(COORDINATE_XYZ);
 				ret=1;
 			}
 			if(abs((int)((auto_upload_datas.current_z-Current_Position[Z_AXIS])*100))>2)
@@ -390,6 +408,7 @@ u8 Add_Upload_data(void)
 				auto_upload_datas.current_z=Current_Position[Z_AXIS];
 				sprintf(str_updata,"ZP:%.2f;",Current_Position[Z_AXIS]);
 				strncat(Upload_DataS, str_updata, 30);  
+                                Add_Message(COORDINATE_XYZ);
 				ret=1;
 			}
 		}
@@ -432,15 +451,51 @@ u8 Add_Upload_data(void)
 		ret=1;
 	}
 
-	if(abs((int)((auto_upload_datas.current_CurrentNozzle_temperature-Current_Temperature[NOZZLE0])*10))>=5)//Extruder current temperature
+	if(abs((int)((auto_upload_datas.current_CurrentNozzle_temperature-Current_Temperature[NOZZLE0])*10))>=10)//Extruder current temperature
+	{
+	       if(Current_Temperature[NOZZLE0]<1 && temp_times <3)
+             {   
+                temp_times++;
+             }
+             else
+             {
+                    if(temp_times>0)
+                        temp_times=0;
+        		memset(str_updata,0,30);
+        		auto_upload_datas.current_CurrentNozzle_temperature=Current_Temperature[NOZZLE0];
+        		sprintf(str_updata,"NC:%.1f;",Current_Temperature[NOZZLE0]);
+        		strncat(Upload_DataS, str_updata, 30);  
+        		ret=1;
+             }
+	}
+#ifdef BOARD_A30D_Pro_S
+	if(abs((int)(auto_upload_datas.current_targeNozzle_temperature-Setting.targe_temperature[NOZZLE1]))>=1) //Extruder target temperature
 	{
 		memset(str_updata,0,30);
-		auto_upload_datas.current_CurrentNozzle_temperature=Current_Temperature[NOZZLE0];
-		sprintf(str_updata,"NC:%.1f;",Current_Temperature[NOZZLE0]);
+		auto_upload_datas.current_targeNozzle_temperature=Setting.targe_temperature[NOZZLE1];
+		sprintf(str_updata,"N1S:%.1f;",Setting.targe_temperature[NOZZLE1]);
 		strncat(Upload_DataS, str_updata, 30);  
 		ret=1;
 	}
 
+	if(abs((int)((auto_upload_datas.current_CurrentNozzle1_temperature-Current_Temperature[NOZZLE1])*10))>=10)//Extruder current temperature
+	{
+	       if(Current_Temperature[NOZZLE1]<1 && temp_times <3)
+             {   
+                temp_times++;
+             }
+             else
+             {
+                    if(temp_times>0)
+                        temp_times=0;
+        		memset(str_updata,0,30);
+        		auto_upload_datas.current_CurrentNozzle1_temperature=Current_Temperature[NOZZLE1];
+        		sprintf(str_updata,"N1C:%.1f;",Current_Temperature[NOZZLE1]);
+        		strncat(Upload_DataS, str_updata, 30);  
+        		ret=1;
+             }
+	}
+#endif
 	if(abs((int)(auto_upload_datas.current_targebed_temperature-Setting.targe_temperature[BED]))>=1)//Hot bed target temperature
 	{
 		memset(str_updata,0,30);
@@ -508,7 +563,8 @@ u8 Add_Upload_data(void)
 	}
 	if(abs((int)((auto_upload_datas.current_Plies*10)-(Current_Position[Z_AXIS]*10)))>1)//&&abs((int)((auto_upload_datas.current_Plies*10)-(Current_Position[Z_AXIS]*10)))<15//The current layer number of the model
 	{
-		if(((Current_Position[Z_AXIS]/layer_high)<2100&&(Up_CL_Flag==0))&&(system_infor.sd_print_status==SD_PRINTING||system_infor.serial_printf_flag==1))
+                
+		if(((Current_Position[Z_AXIS]/layer_high)<2100&&(Up_CL_Flag==0))&&(system_infor.sd_print_status==SD_PRINTING||system_infor.serial_printf_flag==1)&&(Sum_layers_flag == 1))
 		{
 			memset(str_updata,0,30);
 			auto_upload_datas.current_Plies=Current_Position[Z_AXIS];
@@ -585,7 +641,7 @@ u8 Add_Upload_data(void)
 	}
 #endif
 
-#ifdef BOARD_A30_MINI_S
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 	if(auto_upload_datas.filament_OFF_ON!=system_infor.Filament_Dev_Flag)//Filament_Dev_Flag
 	{
 		memset(str_updata,0,30);
@@ -596,19 +652,34 @@ u8 Add_Upload_data(void)
 		ret=1;
 	}
 #endif
+
+#ifdef BOARD_A30M_Pro_S
+    if(auto_upload_datas.mixer_rate!=mixer.rate[NOZZLE0])//Filament_Dev_Flag
+	{
+		memset(str_updata,0,30);
+		auto_upload_datas.mixer_rate=mixer.rate[NOZZLE0];
+		sprintf(str_updata,"NF:%d;",mixer.rate[NOZZLE0]);
+		strncat(Upload_DataS, str_updata, 30);  
+             //printf("NF:%s\r\n",str_updata);
+		ret=1;
+	}
+#endif
+//mixer.rate[NOZZLE0]  mixer_rate
 	memset(str_updata,0,30);
 	sprintf(str_updata,"*>\r\n");
 	strncat(Upload_DataS, str_updata, 30);  
 	if(ret==1)
 	{
 		USART3_printf(Upload_DataS);
+         //  printf("DD:%s",Upload_DataS);
 	}
 	return ret;
 }
 
-#ifdef WIFI_MODULE
+
 void WIF_EXIST_TEST(void)
 {
+#ifdef WIFI_MODULE
 	if(Setting.wifi_exist_flag ==1)
 	{
 		sprintf(Printf_Buf,"<AUTO_UD:WFET:1;*>\r\n");
@@ -621,9 +692,12 @@ void WIF_EXIST_TEST(void)
              USART3_printf(Printf_Buf);
             // printf("%s",Printf_Buf);
 	}
-
-}
+#else
+        sprintf(Printf_Buf,"<AUTO_UD:WFET:1;*>\r\n");
+        USART3_printf(Printf_Buf);
 #endif
+}
+
 
 /******************************************************************************/
 
@@ -1031,12 +1105,15 @@ static void Serial_AXIS_Move_Cmd_Processing(void)
     }
 } 
 
-#ifdef DELTA 
+#if (defined BOARD_M301_Pro_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
 void Prepare_mixer(void)
 {
   Plan_mix_rate(&mixer);
 
 }
+
+#endif
+#ifdef DELTA 
   u8 prepare_move_delta() 
   {
     float difference[NUM_AXIS];
@@ -1137,8 +1214,8 @@ static void Get_linear_coordinates(void)
     }
     if(Command_is('F',&ch_point))
     {
-#ifdef BOARD_A30_MINI_S
-    if(Destination[2] != Current_Position[2])
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
+   /* if(Destination[2] != Current_Position[2])
     {
         if(Command_value_float(ch_point)>1800)
         {
@@ -1147,7 +1224,7 @@ static void Get_linear_coordinates(void)
         else
             Current_Feedrate = Command_value_float(ch_point)/60.0;
     }
-    else
+    else*/
     {
         Current_Feedrate = Command_value_float(ch_point)/60.0;
     }
@@ -1592,6 +1669,7 @@ extern float Current_Temperature[5];
 extern u8 Rev_File_Flag;
 void Send_Printer_State(void)
 {
+#ifdef WIFI_MODULE
     if(Rev_File_Flag==1)
     return;
     if(system_infor.system_status == STANDBY)
@@ -1625,6 +1703,7 @@ void Send_Printer_State(void)
                      USART2_TxString((u8*)Printf_Buf);
               }
      }
+    #endif
 }
 
 void send_xyz_coordinate(void)
@@ -1682,7 +1761,7 @@ void Send_m105_ask(void)
 }
 void  Return_M105_Command(void)
 {
-    printf("\r\nok  B:%.1f /%.1f T0:%.1f /%.1f T1:%.1f /%.1f T2:%.1f /%.1f F:%d R:%d @:0 B@:0\r\n",
+    printf("\r\nok B:%.1f /%.1f T0:%.1f /%.1f T1:%.1f /%.1f T2:%.1f /%.1f F:%d R:%d @:0 B@:0\r\n",
         Current_Temperature[BED],Setting.targe_temperature[BED],
         Current_Temperature[NOZZLE0],Setting.targe_temperature[NOZZLE0],
         Current_Temperature[NOZZLE1],Setting.targe_temperature[NOZZLE1],
@@ -1732,7 +1811,7 @@ void Processing_command(void)
     s32 wifi_temp=0;
     char com_cpy[30];
     u8 Z_Move_Flag=0;
-   // printf("%s\r\n",Command_Buffer);
+   //printf("QQ:%s\r\n",Command_Buffer);
     if(g_code == 'G')
     {
         system_infor.Motor_Disable_Times =0;
@@ -1781,14 +1860,15 @@ void Processing_command(void)
                 Setting.unit = MM;
                 if((system_infor.serial_printf_flag == DISABLE) && (serial_connect_flag == ENABLE))
                 {
-                system_infor.serial_printf_flag=ENABLE;
-                system_infor.system_status=SERIAL_CONNECT;
+                    system_infor.serial_printf_flag=ENABLE;
+                    system_infor.system_status=SERIAL_CONNECT;
                 }
             break;
 
             case 28://XYZ axis homed
                 motor_enable_status=1;
                 Gloabl_axis_go_origin_flag = true;
+                Set_E0_Motor_Flag(0);
                 Queue_wait();
                 for(unsigned char i=0;i<3;i++)   
                 {
@@ -1852,6 +1932,14 @@ void Processing_command(void)
                     Autohome.timer = 899;
                     TIM8->ARR = Autohome.timer;
                     TIM_Cmd(TIM8, ENABLE);
+                    if(system_infor.Auto_Levele_Flag ==1)
+                    {
+                         while(Autohome.flag[X_AXIS]+Autohome.flag[Y_AXIS]);
+                    }
+                    else
+                    {
+                         while(Autohome.flag[X_AXIS]+Autohome.flag[Y_AXIS]+Autohome.flag[Z_AXIS]);
+                    }
 #ifdef DELTA
   			Current_Position[X_AXIS] = 0;
             Current_Position[Y_AXIS] = 0;
@@ -1890,7 +1978,7 @@ void Processing_command(void)
 #endif
                     {
                         plan_init();
-#ifdef BOARD_A30_MINI_S  
+#if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
                         if(Z_Move_Flag==1)
                         {
                             sprintf(com_cpy,"G92 Z-%.2f\r\n",Setting.zz_offset);         
@@ -2085,6 +2173,7 @@ void Processing_command(void)
                 Enable_Z_Axis();
                 Enable_E0_Axis();
                 Enable_E1_Axis();
+                
                 Enable_E2_Axis();
             break;
             case 18://disable all step motor
@@ -2152,7 +2241,7 @@ void Processing_command(void)
                 SET_FAN0_SPEED(FULL_POWER);
                 SET_FAN1_SPEED(FULL_POWER);
                 SET_FAN2_SPEED(FULL_POWER);
-                printf("SD_PRINT_RECOVERY...\r\n");
+                //printf("SD_PRINT_RECOVERY...\r\n");
                 if(system_infor.sd_print_status==SD_PRINT_PAUSE)
                 {
                     system_infor.sd_print_status = SD_PRINT_RECOVERY;
@@ -2214,6 +2303,10 @@ void Processing_command(void)
                     USART3_printf(Upload_DataS);
                 }
             break;
+            case 26:
+                if(Command_is('S',&ch_point))
+                    fptr_buf=Command_value_long(ch_point);
+                break;
             case 27:
                 GCODE_M27();
                 break;
@@ -2355,7 +2448,11 @@ void Processing_command(void)
             case 104://set print temperature
                 if(Command_is('T',&ch_point))
                 {
+#ifdef BOARD_A30D_Pro_S
                     targeted_hotend = (u8)Command_value_float(ch_point);
+#else
+                    targeted_hotend = NOZZLE0;
+#endif
                 }
                 else 
                     targeted_hotend = NOZZLE0;
@@ -2370,6 +2467,8 @@ void Processing_command(void)
                     temp_temperature = Command_value_float(ch_point);
                     if(temp_temperature>0)
                         SET_FAN1_SPEED(FULL_POWER);
+                    else
+                        SET_FAN1_SPEED(HALF_POWER);
                     Setting.targe_temperature[targeted_hotend] = temp_temperature;
                     Setting.hotend_enable[targeted_hotend] = ENABLE;
                 }
@@ -2442,7 +2541,12 @@ void Processing_command(void)
             case 109:
             if(Command_is('T',&ch_point))
             {
+
+#ifdef BOARD_A30D_Pro_S
                 targeted_hotend = (u8)Command_value_float(ch_point);
+#else
+                 targeted_hotend = NOZZLE0;
+#endif
             }
             else 
                 targeted_hotend = NOZZLE0;
@@ -2507,11 +2611,11 @@ void Processing_command(void)
             case  114:
                 sprintf(Printf_Buf, "X:");my_printf(Printf_Buf);
                 sprintf(Printf_Buf, "%.3f",Current_Position[X_AXIS]);my_printf(Printf_Buf);
-                sprintf(Printf_Buf, "Y:");my_printf(Printf_Buf);
+                sprintf(Printf_Buf, " Y:");my_printf(Printf_Buf);
                 sprintf(Printf_Buf, "%.3f",Current_Position[Y_AXIS]);my_printf(Printf_Buf);
-                sprintf(Printf_Buf, "Z:");my_printf(Printf_Buf);
+                sprintf(Printf_Buf, " Z:");my_printf(Printf_Buf);
                 sprintf(Printf_Buf, "%.3f",Current_Position[Z_AXIS]);my_printf(Printf_Buf);
-                sprintf(Printf_Buf, "E:");my_printf(Printf_Buf);
+                sprintf(Printf_Buf, " E:");my_printf(Printf_Buf);
                 sprintf(Printf_Buf, "%.3f",Current_Position[E_AXIS]);my_printf(Printf_Buf);
                 sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
             break;
@@ -2546,73 +2650,67 @@ void Processing_command(void)
             /*X MIN*/
                 if(get_endstop_state( X_AXIS,MINENDSTOP))
                 {
-                    sprintf(Printf_Buf, "X MIN Endstop:ON");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "x_min: TRIGGERED\r\n");my_printf(Printf_Buf);
                 }
                 else
                 {
-                    sprintf(Printf_Buf, "X MIN Endstop:OFF");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "x_min: OPEN\r\n");my_printf(Printf_Buf);
                 }
 
                 /*X MAX*/
                 if(get_endstop_state( X_AXIS,MAXENDSTOP))
                 {
-                    sprintf(Printf_Buf, "X MAX Endstop:ON");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "x_max: TRIGGERED\r\n");my_printf(Printf_Buf);
+
                 }
                 else
                 {
-                    sprintf(Printf_Buf, "X MAX Endstop:OFF");my_printf(Printf_Buf);
-                sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "x_max: OPEN\r\n");my_printf(Printf_Buf);
                 }
 
                 /*Y MIN*/
                 if(get_endstop_state( Y_AXIS,MINENDSTOP))
                 {
-                    sprintf(Printf_Buf, "Y MIN Endstop:ON");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "y_min: TRIGGERED\r\n");my_printf(Printf_Buf);
                 }
                 else
                 {
-                    sprintf(Printf_Buf, "Y MIN Endstop:OFF");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "y_min: OPEN\r\n");my_printf(Printf_Buf);
                 }
                 /*Y MAX*/
                 if(get_endstop_state( Y_AXIS,MAXENDSTOP))
                 {
-                    sprintf(Printf_Buf, "Y MAX Endstop:ON");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "y_max: TRIGGERED\r\n");my_printf(Printf_Buf);
+
                 }
                 else
                 {
-                    sprintf(Printf_Buf, "Y MAX Endstop:OFF");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "y_max: OPEN\r\n");my_printf(Printf_Buf);
+
                 }
 
                 /*Z MIN*/
                 if(get_endstop_state( Z_AXIS,MINENDSTOP))
                 {
-                    sprintf(Printf_Buf, "Z MIN Endstop:ON");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "z_min: TRIGGERED\r\n");my_printf(Printf_Buf);
+
                 }
                 else
                 {
-                    sprintf(Printf_Buf, "Z MIN Endstop:OFF");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "z_min: OPEN\r\n");my_printf(Printf_Buf);
                 }
 
 
                 /*Z MAX*/	
                 if(get_endstop_state( Z_AXIS,MAXENDSTOP))
                 {
-                    sprintf(Printf_Buf, "Z MAX Endstop:ON");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "z_max: TRIGGERED\r\n");my_printf(Printf_Buf);
+
                 }
                 else
                 {
-                    sprintf(Printf_Buf, "Z MAX Endstop:OFF");my_printf(Printf_Buf);
-                    sprintf(Printf_Buf, "\r\n");my_printf(Printf_Buf);
+                    sprintf(Printf_Buf, "z_max: OPEN\r\n");my_printf(Printf_Buf);
+
                 }
 
             break;
@@ -3154,11 +3252,28 @@ void Processing_command(void)
                 Add_Message(PRINTER_MESSAGE);
             break;
             case 2222:  //Control E motor positive and negative
+            {
+#if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
+            if(strstr(Command_Buffer,"P1"))//Command_Buffer
+            {
+                   mixer.rate[NOZZLE0] = MIN_MIXER_OFP;
+                   mixer.rate[NOZZLE1] = MAX_MIXER_OFP;
+            }
+            else
+            {
+                   mixer.rate[NOZZLE0] = MAX_MIXER_OFP;
+                   mixer.rate[NOZZLE1] = MIN_MIXER_OFP;
+            }
+            Add_Message(MIXER_RATE);
+            printf("%s\r\n",Command_Buffer);
+#endif
+            
                 if(Command_is('S',&ch_point))
                 {
                     u8 motor_f=Command_value_long(ch_point);
                     Set_E0_Motor_Flag(motor_f);
                 }
+            }
             break;
 #ifdef ENABLE_AUTO_BED_LEVELING
             case 2225:  //set auto_levele
@@ -3274,10 +3389,12 @@ void Processing_command(void)
             case 2555: //reset
                 NVIC_SystemReset();
             break;
-#ifdef WIFI_MODULE
+
             case 2556: //Detect whether WiFi exists
                 WIF_EXIST_TEST();
+                Add_Message(PRINTER_SD_STATUS);
             break;
+#ifdef WIFI_MODULE
             case 2557: //Set up WiFi information through the serial port  " M2557 <ssid_name|password>"
             {
                 u8 num =0,j=0;
@@ -3328,7 +3445,8 @@ void Processing_command(void)
     }
     else if(g_code == 'T')
     {
- #ifdef DELTA 
+#if (defined BOARD_M301_Pro_S) || (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
+        printf("%s\r\n",Command_Buffer);
       switch(Command_value_long(ch_point))
       {
           
@@ -3361,24 +3479,150 @@ void Processing_command(void)
                   mixer.rate_buf[NOZZLE1] = 100-mixer.min;                                   
                   break;
                   
-#else 
+#else
           case 0: 
-                  mixer.rate_buf[NOZZLE0] = 100;
-                  mixer.rate_buf[NOZZLE1] = 0;                    
+                  mixer.rate_buf[NOZZLE0] = Setting.mixer_ofp_max;
+                  mixer.rate_buf[NOZZLE1] = Setting.mixer_ofp_min; 
+                  Add_Message(MIXER_RATE);
+                  Filament_Change_Flag =1;
                   break;
           
           case 1:            
-                  mixer.rate_buf[NOZZLE0] = 0;
-                  mixer.rate_buf[NOZZLE1] = 100;
+                  mixer.rate_buf[NOZZLE0] = Setting.mixer_ofp_min;
+                  mixer.rate_buf[NOZZLE1] = Setting.mixer_ofp_max;
+                  Add_Message(MIXER_RATE);
+                  Filament_Change_Flag =1;
                   break;
                                                    
 #endif
-                         
+        case 10:  //set mixer.rate_buf[NOZZLE0] 
+            {
+                int temp=0;
+                if(Command_is('S',&ch_point))
+                {
+                    temp=(int)Command_value_long(ch_point);
+                    if(temp<Setting.mixer_ofp_min)
+                        temp = Setting.mixer_ofp_min;
+                    else if(temp >Setting.mixer_ofp_max)
+                        temp =Setting.mixer_ofp_max;
+                    
+                   // if(temp>=Setting.mixer_ofp_min  && temp<Setting.mixer_ofp_max)
+                    {
+                        mixer.rate_buf[NOZZLE0] = temp;
+                        mixer.rate_buf[NOZZLE1] = 100-temp;
+                        color_change_flag =0;
+                        Filament_Change_Flag =1;
+                        Add_Message(MIXER_RATE);
+                       // printf("mixer.rate_buf[NOZZLE0]:%d\r\n",temp);
+                    }
+                    
+                }
+            }
+        case 11:
+            {
+                u8 temp=0;
+                if(Command_is('S',&ch_point))
+                {
+                    temp=(int)Command_value_long(ch_point);
+                    get_current_position(Z_AXIS);
+                  //  printf("NN:%d\r\n",temp);
+                    switch(temp)
+                    {
+                        case 1:
+                            color_change_flag=TEMPLATE_1;//NOZZLE0 max  2mm
+                            mixer.rate_buf[NOZZLE0] = 99;
+                            mixer.rate_buf[NOZZLE1] = 1;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 2:
+                            color_change_flag=TEMPLATE_2;//NOZZLE0 min 2mmm
+                            mixer.rate_buf[NOZZLE0] = 1;
+                            mixer.rate_buf[NOZZLE1] = 99;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 3:
+                            color_change_flag=TEMPLATE_3;//NOZZLE0 max  10mm
+                            mixer.rate_buf[NOZZLE0] = 99;
+                            mixer.rate_buf[NOZZLE1] = 1;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 4:
+                            color_change_flag=TEMPLATE_4;//NOZZLE0 min 10mmm
+                            mixer.rate_buf[NOZZLE0] = 1;
+                            mixer.rate_buf[NOZZLE1] = 99;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 5:
+                            color_change_flag=TEMPLATE_5;//NOZZLE0 max  20mm
+                            mixer.rate_buf[NOZZLE0] = 99;
+                            mixer.rate_buf[NOZZLE1] = 1;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 6:
+                            color_change_flag=TEMPLATE_6;//NOZZLE0 min 20mmm
+                            mixer.rate_buf[NOZZLE0] = 1;
+                            mixer.rate_buf[NOZZLE1] = 99;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 7:
+                            color_change_flag=TEMPLATE_7;//NOZZLE0 max  50mm
+                            mixer.rate_buf[NOZZLE0] = 99;
+                            mixer.rate_buf[NOZZLE1] = 1;
+                            Filament_Change_Flag =1;
+                        break;
+                        case 8:
+                            color_change_flag=TEMPLATE_8;//NOZZLE0 min 50mmm
+                            mixer.rate_buf[NOZZLE0] = 1;
+                            mixer.rate_buf[NOZZLE1] = 99;
+                            Filament_Change_Flag =1;
+                        break;
+                            
+                    }
+                    Add_Message(MIXER_RATE);
+                }
+
+            }
+            break;
+            case 12:
+            {
+                u16 temp;
+                 if(Command_is('P',&ch_point))
+                {
+                    temp=(int)Command_value_long(ch_point);
+                    if(temp == 0)
+                    {
+                        Setting.custom_conf_start_height[0] = Current_Position[2];
+                    }
+                    else
+                    {
+                        Setting.custom_conf_start_height[0] = temp;
+                     //   printf("PP:%d;%f\r\n",temp,Setting.custom_conf_start_height[0]);
+                    }
+                }
+                if(Command_is('S',&ch_point))
+                {
+                    temp=(int)Command_value_long(ch_point);
+                    Setting.custom_conf_end_height[0] = Setting.custom_conf_start_height[0] + temp;
+                   // printf("SS:%d;%f\r\n",temp,Setting.custom_conf_end_height[0]);
+                }
+                color_change_flag =15;
+            }
+            break;
+            case 13:          
+            {
+                 u16 temp;
+                 if(Command_is('P',&ch_point))
+                {
+                    temp=(int)Command_value_long(ch_point);
+                   // printf("N13:%d\r\n",temp);
+                }
+            }
+            break;
 
           default:  break;      
       }
 
-      Prepare_mixer();
+      //Prepare_mixer();
 #endif
   }
     else

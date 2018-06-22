@@ -72,7 +72,7 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 #define Z_MIN_POSITION	            0.0
 #define X_MAX_POSITION             130.0
 #define Y_MAX_POSITION             130.0
-#define Z_MAX_POSITION             132.0 
+#define Z_MAX_POSITION             129.0 
 //Printer's print range
 #define X_MAX_LENGTH (X_MAX_POSITION - X_MIN_POSITION)
 #define Y_MAX_LENGTH (Y_MAX_POSITION - Y_MIN_POSITION)
@@ -93,19 +93,19 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 
 
 //Limit switch polarity setting
-#define X_MIN_ENDSTOP_LEVEL    LOW  //LOW  //HIGH
-#define X_MAX_ENDSTOP_LEVEL    LOW
-#define Y_MIN_ENDSTOP_LEVEL    LOW
-#define Y_MAX_ENDSTOP_LEVEL    LOW
-#define Z_MIN_ENDSTOP_LEVEL    LOW
-#define Z_MAX_ENDSTOP_LEVEL    LOW
+#define X_MIN_ENDSTOP_LEVEL    HIGH  //LOW  //HIGH
+#define X_MAX_ENDSTOP_LEVEL    HIGH
+#define Y_MIN_ENDSTOP_LEVEL    HIGH
+#define Y_MAX_ENDSTOP_LEVEL    HIGH
+#define Z_MIN_ENDSTOP_LEVEL     HIGH
+#define Z_MAX_ENDSTOP_LEVEL    HIGH
 
-#define X_MIN_ENDSTOP_STATUS    OPEN    //OPEN  CLOSE
-#define X_MAX_ENDSTOP_STATUS    OPEN
-#define Y_MIN_ENDSTOP_STATUS    OPEN
-#define Y_MAX_ENDSTOP_STATUS    OPEN
-#define Z_MIN_ENDSTOP_STATUS    OPEN
-#define Z_MAX_ENDSTOP_STATUS    OPEN
+#define X_MIN_ENDSTOP_STATUS    CLOSE    //OPEN  CLOSE
+#define X_MAX_ENDSTOP_STATUS    CLOSE
+#define Y_MIN_ENDSTOP_STATUS    CLOSE
+#define Y_MAX_ENDSTOP_STATUS    CLOSE
+#define Z_MIN_ENDSTOP_STATUS    CLOSE
+#define Z_MAX_ENDSTOP_STATUS    CLOSE
 
 
 
@@ -119,7 +119,7 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 #define STEPS_PER_mm_FOR_X       80
 #define STEPS_PER_mm_FOR_Y       80
 #define STEPS_PER_mm_FOR_Z       400.000
-#define STEPS_PER_mm_FOR_E       88
+#define STEPS_PER_mm_FOR_E       94
 
 
 //Stepper motor maximum speed
