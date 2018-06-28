@@ -7,6 +7,7 @@
 ## Introduction
 3D printer firmware and hardware for stm32
 
+## What's included
 Folder | Description
 --- | ---
 firmwares | source code of this project(including IAR version and Eclipse version)
