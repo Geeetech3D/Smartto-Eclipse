@@ -1,4 +1,4 @@
-    <div align="center"><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/smartto-logo.png" width="400" height="100" alt="smartto-logo" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/smartto-logo.png" width="400" height="100" alt="smartto-logo" /></div>
 
 ## Status
 [![Opensource](https://img.shields.io/badge/Opensource%20by-Geeetech3D-blue.svg)](https://www.geeetech.com/)
