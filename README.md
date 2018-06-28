@@ -1,5 +1,5 @@
  <div align=center>
- ![smartto-logo](https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/smartto-logo.png)
+    ![smartto-logo](https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/smartto-logo.png)
 
 ## Status
 [![Opensource](https://img.shields.io/badge/Opensource%20by-Geeetech3D-blue.svg)](https://www.geeetech.com/)
