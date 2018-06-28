@@ -39,5 +39,9 @@ Step3: Import the project into Eclipse
 
 [Eclipse Tools](http://www.geeetech.com/OpenSource/)
 
+## Record
+
+2018/6/28 Add smartto firmware tool for Mac
+
 ## License
 GPL v2
