@@ -29,6 +29,21 @@ typedef struct
 
    char SN[16];
    char HV[6];
+   //M201
+   u16 max_acceleration[4];    //XYZE  Maximum Acceleration
+  float max_jerk;             //Maximum mutation speed
+  //M205
+  float max_x_jerk;         //Maximum mutation speed x
+  float max_y_jerk;         //Maximum mutation speed y
+  float max_z_jerk;         //Maximum mutation speed z
+  float max_e_jerk;         //Maximum mutation speed e
+  u8 min_travel_feedrate;                            //Airspeed minimum speed
+  u8 min_feedrate;	                                //minimum  print speed
+    u32 min_segment_time;                           //The minimum frequency of printing
+  //M204
+  float retract_acceleration;                      //retract  Acceleration
+  float acceleration;					//Acceleration
+  
 #ifdef DELTA
   float delta_segments_per_sec;
   float delta_diagonal_rod;
@@ -55,22 +70,15 @@ typedef struct
   
   u16 extrude_multiply;                                //The multiple of discharge
   u32 min_segment_steps;                           //The minimum number of moves
-  u32 min_segment_time;                           //The minimum frequency of printing
   u8   endstop_level[6];	                        //Limit switch operating level
   u8   endstop_status[6];                          //Limit switch enable status
-  float retract_acceleration;                      //retract  Acceleration
-  float acceleration;					//Acceleration
+
   u32 axis_steps_per_sqr_second[4];      //XYZE  number of moves
-  u8 min_travel_feedrate;                            //Airspeed minimum speed
-  u8 min_feedrate;	                                //minimum  print speed
+
   u8   home_position[3];	      //motor homed position
   u16 home_speed[3];	      //motor homed speed
-  float max_jerk;             //Maximum mutation speed
-  float max_x_jerk;         //Maximum mutation speed x
-  float max_y_jerk;         //Maximum mutation speed y
-  float max_z_jerk;         //Maximum mutation speed z
-  float max_e_jerk;         //Maximum mutation speed e
-   u16 max_acceleration[4];    //XYZE  Maximum Acceleration
+
+
   u8 pid_adjust_range;   //PID adjustment range
   matrix_3x3 plan_bed_level_matrix;
   u8 locate_mode;	//coordinate mode
@@ -105,4 +113,5 @@ void Store_AutoLevele_Flag(u8 flag);
 u8 Get_AutoLevele_Flag(void);
 void Store_Filament_Dev_Flag(u8 flag);
 u8 Get_Filament_Dev_Flag(void);
+void Store_AutoLevele_3Dtouch_Flag(u8 flag);
 #endif

@@ -10,6 +10,7 @@
 #define HARDWARE_VERSION_ADDR  0X0807F5E0          /*Hardware version number save address*/ //16
 #define AUTO_LEVELEFLAG_ADDR       0X0807F5F0          /**/   
 #define AUTO_FILAMENT_DEV_ADDR  0X0807F5F4          /**/  
+#define AUTO_LEVELE_3DTOUCH_FLAG 0X0807F5F8
 
 #define RECOVERY_SAVE_FLAG_ADDR             0X0807F600//Power failure continued printing to save parameters address
 #define RECOVERY_SAVE_ADDR                      0X0807F602
@@ -40,6 +41,7 @@ typedef struct{
 	float   print_file_size;  //file size
 	u8      Filament_Dev_Flag;//filament inspection mark
 	u8     Auto_Levele_Flag; //auto leveling flag
+	u8     Auto_Levele_3dTouch_Flag; // 3d touch flag
 	u32   Motor_Disable_Times; //motor unlock time
 	u16   Beep_period ; //period in milliseconds
        int    Beep_duration ; //duration in milliseconds 

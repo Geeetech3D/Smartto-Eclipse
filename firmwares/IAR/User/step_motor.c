@@ -1,32 +1,3 @@
-/*
-* Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible,use it on your own risk.But to exclusively support Geeetech customers,we makes sure that the
- * releases here are stable and guaranted to work properly on all the printers and hardware sold by Geeetech. 
- * We encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * If so then there is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not 
- * applicable to them.Even if you want to do so then you must acquire written permission from Geeetech.
- * Only under written condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet their needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final
- * code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- *  
- * Geeetech commits itself to promoting the open source spirit.
-*/
-
 #include "step_motor.h"
 #include "XZK_Rule.h"
 #include "delay.h"
@@ -91,7 +62,7 @@ float basic_axis_position[3];
 u8 color_change_flag = 0;
 
 mixer_t mixer;
-extern u8 power_supply;
+extern u8 power_supply,S3D_Touch_Flag;
 static void Nozzle_Select(void);
 /*******************step motor gpio pins init*************************/
 void Step_Motor_GPIO_Config(void)
@@ -99,10 +70,16 @@ void Step_Motor_GPIO_Config(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD, ENABLE); 
     GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
-    GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_15;
+    GPIO_InitStructure.GPIO_Pin =   GPIO_Pin_1 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_15;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;		    //
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure); 
+#ifndef BOARD_A30_MINI_S
+    GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;		    //
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStructure); 
+#endif  
     GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_6 | GPIO_Pin_11;//           
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;		    //
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
@@ -176,7 +153,10 @@ bool Read_endstop_Z_hit(void)
 }
 u8 Read_Z_MIN_ENDSTOP_INVERTING(void)
 {
-  return (Z_MIN_ENDSTOP_INVERTING);
+  if(S3D_Touch_Flag==1 && system_infor.Auto_Levele_Flag==1)
+    return (!Z_MIN_ENDSTOP_INVERTING);
+  else
+    return (Z_MIN_ENDSTOP_INVERTING);
 }
 void Write_endstop_Z_hit(bool hit_state)
 {
@@ -205,6 +185,7 @@ void Trapezoid_Generator_Reset()
 void Step_Motor_Control(void)
 {  
     u16 Axis_Dir_Step_PORT =0;
+    bool z_min_endstop;
 #ifdef BOARD_A30M_Pro_S
     if(Filament_E0_Change_Flag==1||Filament_E0_Change_Flag==2 ||Filament_E1_Change_Flag==1||Filament_E1_Change_Flag==2)
     {
@@ -215,7 +196,7 @@ void Step_Motor_Control(void)
     if(Current_Block == NULL)
     {
         Current_Block = Get_current_block();
-#ifdef BOARD_A30M_Pro_S      
+#ifdef BOARD_A30M_Pro_S
         Mixer_Change();
 #endif
         if(Current_Block != NULL)
@@ -469,11 +450,14 @@ void Step_Motor_Control(void)
 #endif
             }          
 #ifdef ENABLE_AUTO_BED_LEVELING
-            if((Axis_Dir_Step_PORT & 0x0400) == 0x0400)
+            if((Axis_Dir_Step_PORT & 0x0400) == 0x0400 && system_infor.Auto_Levele_Flag==1)
             {   // -direction
                 CHECK_ENDSTOPS
                 {
-                    bool z_min_endstop=(GPIO_ReadInputDataBit(Endstop,Max_Z) == Z_MIN_ENDSTOP_INVERTING);
+                    if(S3D_Touch_Flag==1)
+                            z_min_endstop=(GPIO_ReadInputDataBit(Endstop,Max_Z) == !Z_MIN_ENDSTOP_INVERTING);
+                    else
+                            z_min_endstop=(GPIO_ReadInputDataBit(Endstop,Max_Z) == Z_MIN_ENDSTOP_INVERTING);
                     if(z_min_endstop && old_z_min_endstop && (Current_Block->steps_z > 0)) 
                     {
                         endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
@@ -687,7 +671,7 @@ void Filament_Processing(void)
     }
     else if(Filament_E0_Change_Flag==2)
     {
-        if(mixer.rate[NOZZLE0] <100)
+        if(mixer.rate[NOZZLE0] <=0)
         {
             Filament_E0_Change_Flag=0;
             E0_Steps=0;
@@ -713,7 +697,7 @@ void Filament_Processing(void)
     }
     else if(Filament_E1_Change_Flag==2)
     {
-        if(mixer.rate[NOZZLE1] <100)
+        if(mixer.rate[NOZZLE1] <=0)
         {
             Filament_E1_Change_Flag=0;
             E1_Steps=0;

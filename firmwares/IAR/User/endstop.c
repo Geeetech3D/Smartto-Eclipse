@@ -11,7 +11,7 @@ u8 normal_end_signal[3]={0},touch_end_signal[3]={1,1,1},endstop_status[3]={0}, j
 extern setting_t Setting;
 extern char Printf_Buf[512]; 
 u8 normal_filament_signal=0, filament_status=0, filament_jitter_time = 0;
-
+extern u8 S3D_Touch_Flag;
  extern void command_process(char* str);
 void my_printf(char *Data);
 void __Endstop_GPIO_config(void)
@@ -186,11 +186,11 @@ void Read_endstop(void)
 
   if(Setting.home_position[Z_AXIS] == MINENDSTOP) signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Min_Z);
 #if (defined BOARD_A30_MINI_S) || (defined BOARD_A30M_Pro_S)  || (defined BOARD_A30D_Pro_S)
-	#ifdef CC_3D_Touch
-		else signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Max_Z);
-	#else
-        else signal[Z_AXIS] = !GPIO_ReadInputDataBit(Endstop,Max_Z);
-	#endif
+	//if(S3D_Touch_Flag==1&&system_infor.Auto_Levele_Flag==1)
+	//	signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Max_Z);
+	else
+                signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Max_Z);
+	
 #else
 	else signal[Z_AXIS] = GPIO_ReadInputDataBit(Endstop,Max_Z);
 #endif
@@ -320,11 +320,65 @@ u8 get_endstop_state(u8 axis, u8 end_position)
 void BLTouch_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;          
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-    GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    NVIC_InitTypeDef NVIC_InitStructure;
+    EXTI_InitTypeDef EXTI_InitStructure; 
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+	//pwm那?3???PA0
+ /* TIM2 clock enable */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE|RCC_APB2Periph_GPIOA, ENABLE);  /* GPIOA and GPIOE clock enable */
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+   //GPIO_PinRemapConfig(GPIO_PartialRemap2_TIM2, ENABLE);	
+   
+  /*GPIOA Configuration: TIM2 channel1*/
+  GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_0;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  TIM_DeInit(TIM2);
+  /* Time base configuration */
+  TIM_TimeBaseStructure.TIM_Period = 199;// 4s?D??40000*7200/72000000,50hz=20ms 200*7200/72000000
+  TIM_TimeBaseStructure.TIM_Prescaler = 7199;
+  TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+  TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+  TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+  TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
+
+  /* PWM1 Mode configuration: Channel1 */
+  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;//?¯?“那㊣?¯TIM2?aPWM1?㏒那?
+  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;//那1?邦那?3?㊣豕??℅∩足?
+  TIM_OCInitStructure.TIM_Pulse = 0;//谷豕??足?㊣??米㏒?米㊣??那y?¯??那y米??a???米那㊣㏒?米???﹞⊿谷迆足?㊣?
+  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;//米㊣?“那㊣?¯??那y?米D?車迆CCR1_Val那㊣?a??米???
+
+  TIM_OC1Init(TIM2, &TIM_OCInitStructure); //那1?邦赤“米角
+
+  TIM_OC1PreloadConfig(TIM2, TIM_OCPreload_Enable);
+
+  TIM_ARRPreloadConfig(TIM2, ENABLE); // 那1?邦TIM3??????∩??¯ARR
+
+  /* TIM2 enable counter */
+  TIM_Cmd(TIM2, ENABLE);
+
+  /* //Zmin?D??3?那??‘
+    GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Mode =    GPIO_Mode_IN_FLOATING;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_Init(GPIOE,&GPIO_InitStructure);    
+    EXTI_ClearITPendingBit(EXTI_Line1); 
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOE,GPIO_PinSource1);   
+    EXTI_InitStructure.EXTI_Line = EXTI_Line1;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising; 
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);  
+    
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1; 
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;  
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+    NVIC_Init(&NVIC_InitStructure);    */
 }    
 
 void BLTouch_StateSet(int servo_index, u8 servo_position)//3
@@ -370,7 +424,10 @@ u8 BLTouch_SelfCheck(int servo_index)
 		  {
 			system_infor.sd_print_status=SD_PRINT_PAUSE_F;
 		  }
-		
+		//  else if(serial_printf_flag == 1)
+		 // {
+		//	SerialPrinting_error=0xAA;//∩??迆∩辰車????1㊣那??
+		//  }
 		  return (EndstopState);
 		  }
           Old_EndstopState = EndstopState;

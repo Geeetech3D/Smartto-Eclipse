@@ -602,8 +602,8 @@ void USART1_IRQHandler(void)
         {  
             uart_ch = USART_ReceiveData(USART1);
 
-         USART_SendData(USART1, (unsigned char) uart_ch);
-         while (!(USART1->SR & USART_FLAG_TXE));
+         //USART_SendData(USART1, (unsigned char) uart_ch);
+        // while (!(USART1->SR & USART_FLAG_TXE));
             
             if(((uart_buff_end + 1) % UART_BUFF_SIZE) == uart_buff_start)
             return;

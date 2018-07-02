@@ -1,32 +1,3 @@
-/*
-* Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible,use it on your own risk.But to exclusively support Geeetech customers,we makes sure that the
- * releases here are stable and guaranted to work properly on all the printers and hardware sold by Geeetech. 
- * We encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * If so then there is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not 
- * applicable to them.Even if you want to do so then you must acquire written permission from Geeetech.
- * Only under written condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet their needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final
- * code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- *  
- * Geeetech commits itself to promoting the open source spirit.
-*/
-
 #include "Setting.h"
 #include "stmflash.h"
 #include "step_motor.h"
@@ -36,7 +7,7 @@
 
 #define STORE_LEN 127	
 
-#define SETTINGS_FLAG 0xa55a
+#define SETTINGS_FLAG 0xa55b
 
 setting_t Setting;
 setting_s Settings;
@@ -298,6 +269,17 @@ void Get_Hardware_Version(void)
 void Store_AutoLevele_Flag(u8 flag)
 {	
 	STMFLASH_Write(AUTO_LEVELEFLAG_ADDR, (u16*)&flag, 1);
+}
+//AUTO_LEVELE_3DTOUCH_FLAG
+void Store_AutoLevele_3Dtouch_Flag(u8 flag)
+{	
+	STMFLASH_Write(AUTO_LEVELE_3DTOUCH_FLAG, (u16*)&flag, 1);
+}
+u8 Get_AutoLevele_3DTouch_Flag(void)
+{
+	u16 flag;
+	STMFLASH_Read(AUTO_LEVELE_3DTOUCH_FLAG, (u16*)&flag, 1);
+	return flag;
 }
 u8 Get_AutoLevele_Flag(void)
 {
