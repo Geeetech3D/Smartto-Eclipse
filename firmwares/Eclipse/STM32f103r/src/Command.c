@@ -2706,6 +2706,67 @@ void Processing_command(void)
                 Add_Message(TEMPERATURE_INFO);
             break;
 #endif
+
+            case 201: //set max acceleration per axis (XYZE)
+            	for(u8 i=0;i<NUM_AXIS;i++)
+            	{
+            		if(Command_is(Coordinate_Axias[i],&ch_point))
+            		{
+            			Setting.max_acceleration[i] = Command_value_float(ch_point);
+            		}
+            	}
+            	break;
+
+            case 203: //max feed rate per axis (XYZE)
+            	for(u8 i=0;i<NUM_AXIS;i++)
+            	{
+            		if(Command_is(Coordinate_Axias[i],&ch_point))
+            		{
+            			Setting.max_feedrate[i] = Command_value_float(ch_point);
+            		}
+            	}
+            	break;
+
+            case 204: //set default acceleration
+            	if(Command_is('P',&ch_point)) //printing acceleration
+            	{
+            		Setting.acceleration = Command_value_float(ch_point);
+            	}
+            	if(Command_is('R',&ch_point)) //retract acceleration
+            	{
+            		Setting.retract_acceleration = Command_value_float(ch_point);
+            	}
+            	if(Command_is('T',&ch_point)) //travel acceleration (not yet implemented)
+            	{
+            		Setting.travel_acceleration = Command_value_float(ch_point);
+            	}
+
+            case 205:  //set advanced settings
+            	if(Command_is('S',&ch_point)) //min travel speed while printing
+            	{
+            		Setting.min_feedrate = Command_value_float(ch_point);
+            	}
+            	if(Command_is('T',&ch_point)) //min travel speed during travel
+            	{
+            		Setting.min_travel_feedrate = Command_value_float(ch_point);
+            	}
+            	if(Command_is('B',&ch_point)) //min travel speed during travel
+            	{
+            		Setting.min_segment_time = Command_value_float(ch_point);
+            	}
+            	if(Command_is(Coordinate_Axias[i],&ch_point)) //jerk per axis (XYZE)
+            	{
+            		if(i==0)
+            			Setting.max_x_jerk = Command_value_float(ch_point);
+            		else if(i==1)
+            			Setting.max_y_jerk = Command_value_float(ch_point);
+            		else if(i==2)
+            			Setting.max_z_jerk = Command_value_float(ch_point);
+            		else if(i==3)
+            			Setting.max_e_jerk = Command_value_float(ch_point);
+            	}
+            break;
+
             case 220:
                 if(Command_is('S',&ch_point))
                 {
