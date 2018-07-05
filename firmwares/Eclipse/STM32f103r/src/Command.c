@@ -2772,7 +2772,7 @@ void Processing_command(void)
             	retract_z_probe();
             break;
 
-            case 420: //enable or disable automatid bed leveling
+            case 420: //enable or disable automated bed leveling
             	 if(Command_is('S',&ch_point))
             	 {
             		 cmd_temp=Command_value_long(ch_point);
