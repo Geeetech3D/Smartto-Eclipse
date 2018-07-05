@@ -43,7 +43,10 @@ Step3: Import the project into Eclipse
 ## Smartto Tool
 
 ### Platform--Windows
-<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_snapshot.png" width="800" height="800" alt="motor-tool-usage" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
+
+### Platform--Mac
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
 
 ## Record
 
