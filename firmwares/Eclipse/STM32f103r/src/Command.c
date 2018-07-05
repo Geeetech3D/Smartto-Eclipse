@@ -51,14 +51,10 @@
 #include "data_handle.h"
 #include "qr_solve.h"
 #include "Configuration_Select_Printer.h"
+
 /**
  * Look here for descriptions of G-codes:
- *  - http://linuxcnc.org/handbook/gcode/g-code.html
- *  - http://objects.reprap.org/wiki/Mendel_User_Manual:_RepRapGCodes
- *
- * Help us document these G-codes online:
- *  - http://www.marlinfirmware.org/index.php/G-Code
- *  - http://reprap.org/wiki/G-code
+ *  - https://reprap.org/wiki/G-code
  *
  * -----------------
  * Implemented Codes
@@ -71,155 +67,97 @@
  * G2  - CW ARC
  * G3  - CCW ARC
  * G4  - Dwell S<seconds> or P<milliseconds>
- * G10 - retract filament according to settings of M207
- * G11 - retract recover filament according to settings of M208
+ * G20 - Set units to inches
+ * G21 - Set units to millimeters
  * G28 - Home one or more axes
  * G29 - Detailed Z-Probe, probes the bed at 3 or more points.  Will fail if you haven't homed yet.
- * G30 - Single Z Probe, probes bed at current XY location.
- * G31 - Dock sled (Z_PROBE_SLED only)
- * G32 - Undock sled (Z_PROBE_SLED only)
  * G90 - Use Absolute Coordinates
  * G91 - Use Relative Coordinates
  * G92 - Set current position to coordinates given
  *
+ *
+ *
  * "M" Codes
  *
- * M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
- * M1   - Same as M0
  * M17  - Enable/Power all stepper motors
  * M18  - Disable all stepper motors; same as M84
  * M20  - List SD card
  * M21  - Init SD card
- * M22  - Release SD card
  * M23  - Select SD file (M23 filename.g)
  * M24  - Start/resume SD print
  * M25  - Pause SD print
- * M26  - Set SD position in bytes (M26 S12345)
  * M27  - Report SD print status
- * M28  - Start SD write (M28 filename.g)
- * M29  - Stop SD write
  * M30  - Delete file from SD (M30 filename.g)
- * M31  - Output time since last M109 or SD card start to serial
- * M32  - Select file and start SD print (Can be used _while_ printing from SD card files):
- *        syntax "M32 /path/filename#", or "M32 S<startpos bytes> !filename#"
- *        Call gcode file : "M32 P !filename#" and return to caller file after finishing (similar to #include).
- *        The '#' is necessary when calling from within sd files, as it stops buffer prereading
- * M33  - Get the longname version of a path
- * M42  - Change pin status via gcode Use M42 Px Sy to set pin x to value y, when omitting Px the onboard led will be used.
- * M48  - Measure Z_Probe repeatability. M48 [P # of points] [X position] [Y position] [V_erboseness #] [E_ngage Probe] [L # of legs of travel]
- * M80  - Turn on Power Supply
- * M81  - Turn off Power Supply
- * M82  - Set E codes absolute (default)
- * M83  - Set E codes relative while in Absolute Coordinates (G90) mode
- * M84  - Disable steppers until next move,
- *        or use S<seconds> to specify an inactivity timeout, after which the steppers will be disabled.  S0 to disable the timeout.
- * M85  - Set inactivity shutdown timer with parameter S<seconds>. To disable set zero (default)
- * M92  - Set axis_steps_per_unit - same syntax as G92
+ * M80  - Wake from sleep
+ * M81  - sleep (turns off LCD and some fans)
+ * M84  - Disable steppers
+	* if printing from serial, this will end the serial print and re-home all axis.
+ * M92  - Set axis_steps_per_unit
  * M104 - Set extruder target temp
  * M105 - Read current temp
  * M106 - Fan on
  * M107 - Fan off
- * M109 - Sxxx Wait for extruder current temp to reach target temp. Waits only when heating
- *        Rxxx Wait for extruder current temp to reach target temp. Waits when heating and cooling
- *        IF AUTOTEMP is enabled, S<mintemp> B<maxtemp> F<factor>. Exit autotemp by any M109 without F
- * M111 - Set debug flags with S<mask>. See flag bits defined in Marlin.h.
- * M112 - Emergency stop
+ * M109 - Sets the target temperature for the current build platform. S is the temperature to set the platform to, in degrees Celsius. T is the platform to heat.
+ * M110 - Set current line number
  * M114 - Output current position to serial port
  * M115 - Capabilities string
  * M117 - Display a message on the controller screen
  * M119 - Output Endstop status to serial port
- * M120 - Enable endstop detection
- * M121 - Disable endstop detection
- * M126 - Solenoid Air Valve Open (BariCUDA support by jmil)
- * M127 - Solenoid Air Valve Closed (BariCUDA vent to atmospheric pressure by jmil)
- * M128 - EtoP Open (BariCUDA EtoP = electricity to air pressure transducer by jmil)
- * M129 - EtoP Closed (BariCUDA EtoP = electricity to air pressure transducer by jmil)
  * M140 - Set bed target temp
- * M145 - Set the heatup state H<hotend> B<bed> F<fan speed> for S<material> (0=PLA, 1=ABS)
- * M150 - Set BlinkM Color Output R: Red<0-255> U(!): Green<0-255> B: Blue<0-255> over i2c, G for green does not work.
- * M190 - Sxxx Wait for bed current temp to reach target temp. Waits only when heating
- *        Rxxx Wait for bed current temp to reach target temp. Waits when heating and cooling
- * M200 - set filament diameter and set E axis units to cubic millimeters (use S0 to set back to millimeters).:D<millimeters>- 
+ * M190 - Sxxx Wait for bed current temp to reach target temp.
  * M201 - Set max acceleration in units/s^2 for print moves (M201 X1000 Y1000)
- * M202 - Set max acceleration in units/s^2 for travel moves (M202 X1000 Y1000) Unused in Marlin!!
  * M203 - Set maximum feedrate that your machine can sustain (M203 X200 Y200 Z300 E10000) in mm/sec
  * M204 - Set default acceleration: P for Printing moves, R for Retract only (no X, Y, Z) moves and T for Travel (non printing) moves (ex. M204 P800 T3000 R9000) in mm/sec^2
- * M205 -  advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk
- * M206 - Set additional homing offset
- * M207 - Set retract length S[positive mm] F[feedrate mm/min] Z[additional zlift/hop], stays in mm regardless of M200 setting
- * M208 - Set recover=unretract length S[positive mm surplus to the M207 S*] F[feedrate mm/min]
- * M209 - S<1=true/0=false> enable automatic retract detect if the slicer did not support G10/11: every normal extrude-only move will be classified as retract depending on the direction.
- * M218 - Set hotend offset (in mm): T<extruder_number> X<offset_on_X> Y<offset_on_Y>
+ * M205 - Advanced settings:  minimum travel speed S=while printing T=travel only,  B=minimum segment time X= maximum xy jerk, Z=maximum Z jerk, E=maximum E jerk
  * M220 - Set speed factor override percentage: S<factor in percent>
- * M221 - Set extrude factor override percentage: S<factor in percent>
- * M226 - Wait until the specified pin reaches the state required: P<pin number> S<pin state>
- * M240 - Trigger a camera to take a photograph
- * M250 - Set LCD contrast C<contrast value> (value 0..63)
  * M280 - Set servo position absolute. P: servo index, S: angle or microseconds
  * M300 - Play beep sound S<frequency Hz> P<duration ms>
  * M301 - Set PID parameters P I and D
- * M302 - Allow cold extrudes, or set the minimum extrude S<temperature>.
- * M303 - PID relay autotune S<temperature> sets the target temperature. (default target temperature = 150C)
  * M304 - Set bed PID parameters P I and D
- * M380 - Activate solenoid on active extruder
- * M381 - Disable all solenoids
- * M400 - Finish all moves
- * M401 - Lower z-probe if present
- * M402 - Raise z-probe if present
- * M404 - N<dia in mm> Enter the nominal filament width (3mm, 1.75mm ) or will display nominal filament width without parameters
- * M405 - Turn on Filament Sensor extrusion control.  Optional D<delay in cm> to set delay in centimeters between sensor and extruder
- * M406 - Turn off Filament Sensor extrusion control
- * M407 - Display measured filament diameter
- * M410 - Quickstop. Abort all the planned moves
- * M420 - Enable/Disable Mesh Leveling (with current values) S1=enable S0=disable
- * M421 - Set a single Z coordinate in the Mesh Leveling grid. X<mm> Y<mm> Z<mm>
- * M428 - Set the home_offset logically based on the current_position
+ * M401 - Lower BLTouch pin if present
+ * M402 - Raise BLTouch pin if present
+ * M420 - Enable/Disable Automatic Leveling (with current values) S1=enable S0=disable
  * M500 - Store parameters in EEPROM
- * M501 - Read parameters from EEPROM (if you need reset them after you changed them temporarily).
  * M502 - Revert to the default "factory settings". You still need to store them in EEPROM afterwards if you want to.
- * M503 - Print the current settings (from memory not from EEPROM). Use S0 to leave off headings.
- * M540 - Use S[0|1] to enable or disable the stop SD card print on endstop hit (requires ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
- * M600 - Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal]
- * M665 - Set delta configurations: L<diagonal rod> R<delta radius> S<segments/s>
- * M666 - Set delta endstop adjustment
- * M605 - Set dual x-carriage movement mode: S<mode> [ X<duplication x-offset> R<duplication temp offset> ]
- * M907 - Set digital trimpot motor current using axis codes.
- * M908 - Control digital trimpot directly.
- * M350 - Set microstepping mode.
- * M351 - Toggle MS1 MS2 pins directly.
- *
- * ************ SCARA Specific - This can change to suit future G-code regulations
- * M360 - SCARA calibration: Move to cal-position ThetaA (0 deg calibration)
- * M361 - SCARA calibration: Move to cal-position ThetaB (90 deg calibration - steps per degree)
- * M362 - SCARA calibration: Move to cal-position PsiA (0 deg calibration)
- * M363 - SCARA calibration: Move to cal-position PsiB (90 deg calibration - steps per degree)
- * M364 - SCARA calibration: Move to cal-position PSIC (90 deg to Theta calibration position)
- * M365 - SCARA calibration: Scaling factor, X, Y, Z axis
- * ************* SCARA End ***************
- *
- * ************ Custom codes - This can change to suit future G-code regulations
  * M851 - Set probe's Z offset (mm above extruder -- The value will always be negative)
-
-
- * M928 - Start SD logging (M928 filename.g) - ended by M29
- * M999 - Restart after being stopped by error
+ *
+ *
+ *
+ * ************ Custom codes - The following GCODES are specific to SMARTTO software and hardware (mostly wifi module) functionality
  *
  *	M2000  - set SN and save
- *	M2001  - earse whole flash
- *	M2002  - read print seting (M2002)
- *	M2003  - maxpoint set  (M2003 X280.0 Y160.0)
- *	M2004  - per_mm set (M2004 X80.0)
- *	M2005  - motor dir set (M2005 X 0 Y 1 Z 1 E0 0 E1 1 E2 0)
- *	M2006  - motor max feedrate (M2006 X400 Y400 Z30 E50)	
-
+ *	M2002  - read print setting (M2002)
+ *	M2003  - set max printing range (M2003 X280.0 Y160.0)
+ *	M2004  - set steps per millimeter (same as M92) (M2004 X80.0)
+ *	M2005  - set motor move direction (M2005 X 0 Y 1 Z 1 E0 0 E1 1 E2 0)
+ *	M2006  - set max feed rate (M2006 X400 Y400 Z30 E50)
+ *	M2007  - set homing speed
+ *	M2008  - set hardware version
+ *  M2100  - file transmission
+ *	M2101  - send printer status
+ *	M2102  - get WiFi signal strength
+ *	M2103  - stop print (SD)
+ *  M2104  - network reconnection
+ *  M2105  - extruder feed and return
+ *  M2106  - not yet implemented
+ *	M2107  - Bed leveling configurations
+ *	M2108  - ?
+ *  M2111  - stepper motor control
+ *	M2223  - configure WiFi settings
+ *  M2112  - get WiFi information
+ *	M2201  - get printer information
+ *	M2222  - control E motor positive and negative
+ *  M2225  - configure auto leveling
+ *	M2226  - enable/disable filament detector ("M2226 S1" to enable, "M2226" or "M2206 S0" to disable)
+ *	M2555  - reset
+ *	M2556  - check if WiFi module is present
+ *	M2557  - configure WiFi through serial port "M2557 <ssid_name|password>"
+ *
+ *
  * "T" Codes
  *
  * T0-T3 - Select a tool by index (usually an extruder) [ F<mm/min> ]
- *M2557 <connect to RD24G|JISHUBU666,17S125D2000008,www.geeetech.net,>
  */
-
-
-
 
 
 static float Current_Feedrate,saved_feedrate;
@@ -1760,6 +1698,7 @@ void Processing_command(void)
     static float tempZ;
     g_code = Gcode_is(&ch_point);
     s32 wifi_temp=0;
+    s32 cmd_temp=0;
     char com_cpy[30];
     u8 Z_Move_Flag=0;
    // my_printf("%s\r\n",Command_Buffer);
@@ -2250,36 +2189,13 @@ void Processing_command(void)
             case 30:
                 SD_Delete_File();
             break;
+
             case 32: //select SD file print (uart and wifi)(2017.1.4 add)
 
             break;
-            case 84://disable all step motor
-                SetMotorEnableFlag(0);
-                Disable_all_Axis();
 
-                if(system_infor.serial_printf_flag == 1)
-                {		
-                    system_infor.serial_printf_flag = 0;
-                    system_infor.print_percent = 100;
-#ifdef WIFI_MODULE
-                    if(WIFI_MODE == WIFI_HANDLE_DATA && UARST_REDIRECT == UARST1_REDIRECT)
-                    {
-                        sprintf(Printf_Buf,"printer_SerialPrinting;precent:100%;\r\n");
-                        USART2_TxString((u8 *)(&Printf_Buf));
-                    }
-#endif
-                    command_process("M17\r\n");//น้ฮป
-                    command_process("G28 XY\r\n");
-                    while((Autohome.flag[0]>0) || (Autohome.flag[1]>0) || (Autohome.flag[2]>0));
-                    command_process("M18\r\n");
-                    Set_Beep(1000,127);
-                    delay_ms(1000);
-                    Set_Beep(1000,127);
-               }
-
-            break;
 #ifndef BOARD_M301_Pro_S
-            case 80://Resume sleep
+            case 80://Resume from sleep
            
                 if(system_infor.system_status !=STANDBY)
                 {
@@ -2378,10 +2294,37 @@ void Processing_command(void)
 
             break;
 #endif
+            case 84://disable all step motor
+                            SetMotorEnableFlag(0);
+                            Disable_all_Axis();
+
+                            if(system_infor.serial_printf_flag == 1)
+                            {
+                                system_infor.serial_printf_flag = 0;
+                                system_infor.print_percent = 100;
+            #ifdef WIFI_MODULE
+                                if(WIFI_MODE == WIFI_HANDLE_DATA && UARST_REDIRECT == UARST1_REDIRECT)
+                                {
+                                    sprintf(Printf_Buf,"printer_SerialPrinting;precent:100%;\r\n");
+                                    USART2_TxString((u8 *)(&Printf_Buf));
+                                }
+            #endif
+                                command_process("M17\r\n");//น้ฮป
+                                command_process("G28 XY\r\n");
+                                while((Autohome.flag[0]>0) || (Autohome.flag[1]>0) || (Autohome.flag[2]>0));
+                                command_process("M18\r\n");
+                                Set_Beep(1000,127);
+                                delay_ms(1000);
+                                Set_Beep(1000,127);
+                           }
+
+            break;
+
             case 92://   M92: Set axis_steps_per_unit    
                 Queue_wait();
                 Set_axis_steps_per_unit();      
             break;
+
             case 104://set print temperature
                 if(Command_is('T',&ch_point))
                 {
@@ -2469,6 +2412,7 @@ void Processing_command(void)
                     break;
             }	
             break;
+
             case 109:
             if(Command_is('T',&ch_point))
             {
@@ -2820,6 +2764,32 @@ void Processing_command(void)
                 Set_bed_pid();
             break;
 
+            case 401: //lower BLTouch pin
+            	engage_z_probe();
+            break;
+
+            case 402: //raise BLTouch pin
+            	retract_z_probe();
+            break;
+
+            case 420: //enable or disable automatid bed leveling
+            	 if(Command_is('S',&ch_point))
+            	 {
+            		 cmd_temp=Command_value_long(ch_point);
+            		 if(cmd_temp==1)
+            		 {
+            			 system_infor.Auto_Levele_Flag =1;    //Turn on automatic leveling
+            			 Store_AutoLevele_Flag(1);
+            		 }
+            		 else
+            		 {
+            			 system_infor.Auto_Levele_Flag=2; //Turn off automatic leveling
+            			 Store_AutoLevele_Flag(2);
+            		 }
+            	 }
+            break;
+
+
             case 500: //M500: Store parameters in EEPROM or Flash
                 Store_Memory(USER_SETTINGS);
             break;
@@ -2828,7 +2798,8 @@ void Processing_command(void)
                 Set_Beep(1000,127);
                 Restore_Defaults(USER_SETTINGS);
                 NVIC_SystemReset();
-            break;      
+            break;
+
 #ifdef ENABLE_AUTO_BED_LEVELING
             case 851:
             {
@@ -2856,6 +2827,7 @@ void Processing_command(void)
                 break;
             }
 #endif
+
             case 2000://set sn
             {
                 memcpy(Setting.SN,Command_Buffer+6,16);
@@ -3020,7 +2992,7 @@ void Processing_command(void)
             case 2104://Network reconnection
                 Open_wifi(0);
                 Open_wifi(1);
-                my_printf("wifi duankai\r\n");
+                my_printf("Network Reset\r\n");
             break;
 #endif
             case 2105: //Extruder feed and return
