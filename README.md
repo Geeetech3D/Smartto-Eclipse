@@ -50,7 +50,7 @@ Step3: Import the project into Eclipse
 
 ## Record
 
-2018/7/5 Add M201-M205 support in motor tool V1.0
+2018/7/5 Add M201-M205 support in motor tool V1.0 \
 2018/6/29 Add smartto motor tool for Mac \
 2018/6/28 Add smartto firmware tool for Mac
 
