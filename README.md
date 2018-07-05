@@ -40,8 +40,17 @@ Step3: Import the project into Eclipse
 
 [Eclipse Tools](http://www.geeetech.com/OpenSource/)
 
+## Smartto Tool
+
+### Platform--Windows
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
+
+### Platform--Mac
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
+
 ## Record
 
+2018/7/5 Add M201-M205 support in motor tool V1.0 \
 2018/6/29 Add smartto motor tool for Mac \
 2018/6/28 Add smartto firmware tool for Mac
 
