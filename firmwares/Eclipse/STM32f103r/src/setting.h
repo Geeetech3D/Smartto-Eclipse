@@ -64,6 +64,7 @@ typedef struct
   u8   endstop_status[6];                          //Limit switch enable status
   float retract_acceleration;                      //retract  Acceleration
   float acceleration;					//Acceleration
+  float travel_acceleration;			//Travel acceleration
   u32 axis_steps_per_sqr_second[4];      //XYZE  number of moves
   u8 min_travel_feedrate;                            //Airspeed minimum speed
   u8 min_feedrate;	                                //minimum  print speed

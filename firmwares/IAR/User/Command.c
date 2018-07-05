@@ -1,34 +1,3 @@
-/*
-* Smartto, exclusively developed by Geeetech(http://www.geeetech.com/), is an open source firmware for desktop 3D printers. 
- * Smartto 3D Printer Firmware  
- * It adopts high-performance Cortex M3 core chip STM32F1XX, enabling users to make modifications on the basis of the source code.
- * Copyright (C) 2016, 2017 ,2018 Geeetech [https://github.com/Geeetech3D]
- *
- * Based on Sprinter and grbl.
- * Copyright (C)  2011 Camiel Gubbels / Erik van der Zalm /
- *
- * You should have received a copy of the GNU General Public License version 2 (GPL v2) and a commercial license
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Geeetech Smartto dual license offers users a protective and flexible way to maximize their innovation and creativity.  
- * Smartto aims to be applicable to as many control boards and configurations as possible,use it on your own risk.But to exclusively support Geeetech customers,we makes sure that the
- * releases here are stable and guaranted to work properly on all the printers and hardware sold by Geeetech. 
- * We encourage the community to be active and pursuing the spirits of sharing and mutual help. 
- * The GPL v2 license grants complete use of Smartto to common users. These users are not distributing proprietary modifications or derivatives of Smartto. 
- * If so then there is no need for them to acquire the legal protections of a commercial license.
- * For other users however, who want to use Smartto in their commercial products or have other requirements that are not compatible with the GPLv2, the GPLv2 is not 
- * applicable to them.Even if you want to do so then you must acquire written permission from Geeetech.
- * Only under written condition, Geeetech, the exclusive licensor of Smartto, offers Smartto commercial license to meet their needs. 
- * A Smartto commercial license gives customers legal permission to modify Smartto or incorporate it into their products without the obligation of sharing the final
- * code under the 
- * GPL v2 license. 
- * Fees vary with the application and the scale of its use. For more detailed information, please contact the Geeetech marketing department directly.
- *  
- * Geeetech commits itself to promoting the open source spirit.
-*/
-
-
-
 #include "command.h"
 #include "delay.h"
 #include "usart1.h"
@@ -295,6 +264,7 @@ extern void command_process(char* str);
 extern void USART2_TxString(u8 *string);
 extern void Send_SD_Dir(char *path);
 u8 Auto_Levele_Offset_Flag=0;
+u8 S3D_Touch_Flag=0;
 
 u16 Beep_period = 0; //period in milliseconds
 int Beep_duration = 0; //duration in milliseconds 
@@ -365,6 +335,7 @@ typedef struct UPLOAD_DATA {
 	float Cur_Feedrate;  //
 	u8 exception_flag;
 	u8 auto_levele_flags;
+       u8 auto_3dtouch_flag;
 	u8 filament_decetion_statue;
 	u8 filament_OFF_ON;
 #if (defined BOARD_A30M_Pro_S) || (defined BOARD_A30D_Pro_S)
@@ -666,6 +637,15 @@ u8 Add_Upload_data(void)
 		memset(str_updata,0,30);
 		auto_upload_datas.auto_levele_flags=system_infor.Auto_Levele_Flag;
 		sprintf(str_updata,"AL:%d;",system_infor.Auto_Levele_Flag);
+		strncat(Upload_DataS, str_updata, 30);  
+             
+		ret=1;
+	}
+	if(auto_upload_datas.auto_3dtouch_flag!=system_infor.Auto_Levele_3dTouch_Flag) //auto leveling flag
+	{
+		memset(str_updata,0,30);
+		auto_upload_datas.auto_3dtouch_flag=system_infor.Auto_Levele_3dTouch_Flag;
+		sprintf(str_updata,"DT:%d;",system_infor.Auto_Levele_3dTouch_Flag);
 		strncat(Upload_DataS, str_updata, 30);  
              
 		ret=1;
@@ -1533,7 +1513,7 @@ static void run_z_probe()
         checkHitEndstops();
 
         Current_Position[Z_AXIS] = st_get_position_mm(Z_AXIS);
-        if((Current_Position[Z_AXIS]-Z_Current_Position)<0.03&&(Current_Position[Z_AXIS]-Z_Current_Position)>-0.03)
+        if((Current_Position[Z_AXIS]-Z_Current_Position)<0.1&&(Current_Position[Z_AXIS]-Z_Current_Position)>-0.1)
         {
         Z_Current_Position = Current_Position[Z_AXIS];
         plan_set_position(Current_Position[X_AXIS], Current_Position[Y_AXIS], Current_Position[Z_AXIS], Current_Position[E_AXIS]);
@@ -1641,14 +1621,22 @@ void Reset_G29Z_Origin(void)
 ***********************************************************/
 void Auto_Leveling_run_G28(void)
 {
-    u8 res=0xFF;
+    u8 res=0xFF,i;
     res = Recovery_detect();  //Determine whether to continue playing
     if(res != 0)
     {	
         system_infor.Motor_Disable_Times=0;
         Leveling_SetMotor_flag =ENABLE;
         while((Autohome.flag[0]>0) || (Autohome.flag[1]>0) || (Autohome.flag[2]>0));//Waiting for completion
-
+        if(S3D_Touch_Flag==1)
+        {
+            i=BLTouch_SelfCheck(0);
+            if(true==i)
+            {
+                plan_init();
+                return;
+            }
+        }
         plan_set_position(Current_Position[X_AXIS], Current_Position[Y_AXIS], Current_Position[Z_AXIS], Current_Position[E_AXIS]);
         setup_for_endstop_move();
 
@@ -2803,13 +2791,41 @@ void Processing_command(void)
                 Add_Message(TEMPERATURE_INFO);
             break;
 #endif
+            case 201://set max acceleration
+                for(u8 i=0;i<NUM_AXIS;i++)
+                {
+                    if(Command_is(Coordinate_Axias[i],&ch_point))
+                    {       	
+                        Setting.max_acceleration[i] = Command_value_float(ch_point); 
+                    }
+                }
+                Store_Memory(FACTORY_SETTINGS);
+                break;
+                
+             case 205:  //set max jerk
+                for(u8 i=0;i<NUM_AXIS;i++)
+                {
+                    if(Command_is(Coordinate_Axias[i],&ch_point))
+                    {  
+                        if(i==0)
+                            Setting.max_x_jerk = Command_value_float(ch_point); 
+                        else if(i==1)
+                            Setting.max_y_jerk = Command_value_float(ch_point); 
+                        else if(i==2)
+                            Setting.max_z_jerk = Command_value_float(ch_point);
+                        else if(i==3)
+                            Setting.max_e_jerk = Command_value_float(ch_point);
+                    }
+                }
+                Store_Memory(FACTORY_SETTINGS);
+                break;
             case 220:
                 if(Command_is('S',&ch_point))
                 {
                     system_infor.feed_tare=(int)Command_value_long(ch_point);
-                    if(system_infor.feed_tare > 200)
+                    if(system_infor.feed_tare > 999)
                     {
-                        system_infor.feed_tare = 200;             
+                        system_infor.feed_tare = 999;             
                     }
                     else if(system_infor.feed_tare < 10)
                     {
@@ -3400,6 +3416,24 @@ void Processing_command(void)
                                 command_process("G28\r\n");
                             }
                         break;
+                        case 9:
+                            if(Command_is('S',&ch_point))
+                            {
+                                wifi_temp=Command_value_long(ch_point);
+                                if(wifi_temp==1)
+                                {
+                                    system_infor.Auto_Levele_3dTouch_Flag =1;    //Turn on automatic leveling
+                                    S3D_Touch_Flag=1;
+                                    Store_AutoLevele_3Dtouch_Flag(1);
+                                }
+                                else 
+                                {
+                                    system_infor.Auto_Levele_3dTouch_Flag=0; //Turn off automatic leveling
+                                    S3D_Touch_Flag=0;
+                                    Store_AutoLevele_3Dtouch_Flag(0);
+                                }
+                            }
+                            break;
                     }
                 }
                 break;
@@ -3501,26 +3535,28 @@ void Processing_command(void)
                   break;
 #elif defined(EXTRUDER_2IN1)
           case 0: 
-                  mixer.rate_buf[NOZZLE0] = 100-mixer.min;
-                  mixer.rate_buf[NOZZLE1] = mixer.min;                    
+                  mixer.rate_buf[NOZZLE0] = 100;
+                  mixer.rate_buf[NOZZLE1] = 0;   
+                  Filament_Change_Flag =1;
                   break;
           
           case 1:            
-                  mixer.rate_buf[NOZZLE0] = mixer.min;
-                  mixer.rate_buf[NOZZLE1] = 100-mixer.min;                                   
+                  mixer.rate_buf[NOZZLE0] = 0;
+                  mixer.rate_buf[NOZZLE1] = 100;  
+                  Filament_Change_Flag =1;
                   break;
                   
 #else
           case 0: 
-                  mixer.rate_buf[NOZZLE0] = Setting.mixer_ofp_max;
-                  mixer.rate_buf[NOZZLE1] = Setting.mixer_ofp_min; 
+                  mixer.rate_buf[NOZZLE0] = 100;
+                  mixer.rate_buf[NOZZLE1] = 0; 
                   Add_Message(MIXER_RATE);
                   Filament_Change_Flag =1;
                   break;
           
           case 1:            
-                  mixer.rate_buf[NOZZLE0] = Setting.mixer_ofp_min;
-                  mixer.rate_buf[NOZZLE1] = Setting.mixer_ofp_max;
+                  mixer.rate_buf[NOZZLE0] = 0;
+                  mixer.rate_buf[NOZZLE1] = 100;
                   Add_Message(MIXER_RATE);
                   Filament_Change_Flag =1;
                   break;
