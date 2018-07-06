@@ -4,7 +4,7 @@
 
 ### Latest Version
 
-#### A30_V1.37.61
+#### A30_V1.38.61
 
 ##### New features
 1. Added PID setup command(M301 & M304)
@@ -15,7 +15,7 @@ Fixed auto leveling re-printing problems
 
 ### Legacy Version
 
-#### A30_V1.37.59
+#### A30_V1.37.60
 
 ##### New features
 Made automatic leveling compatible with 3D Touch and Capacitor proximity switch
