@@ -43,7 +43,9 @@ typedef struct
   //M204
   float retract_acceleration;                      //retract  Acceleration
   float acceleration;					//Acceleration
-  
+  float Kp[HOTHEAD_NUMBER];					//PID adjustment parameters P  20
+  float Ki[HOTHEAD_NUMBER];					//PIDadjustment parameters  i  20
+  float Kd[HOTHEAD_NUMBER];					//PIDadjustment parameters  d  20
 #ifdef DELTA
   float delta_segments_per_sec;
   float delta_diagonal_rod;
@@ -82,9 +84,7 @@ typedef struct
   u8 pid_adjust_range;   //PID adjustment range
   matrix_3x3 plan_bed_level_matrix;
   u8 locate_mode;	//coordinate mode
-  float Kp[HOTHEAD_NUMBER];					//PID adjustment parameters P  20
-  float Ki[HOTHEAD_NUMBER];					//PIDadjustment parameters  i  20
-  float Kd[HOTHEAD_NUMBER];					//PIDadjustment parameters  d  20
+
   float targe_temperature[HOTHEAD_NUMBER];	//targe temperture 20
   float min_temperature[HOTHEAD_NUMBER];	      //min targe temperture
   float max_temperature[HOTHEAD_NUMBER];	      //max targe temperture
