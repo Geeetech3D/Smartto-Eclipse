@@ -42,17 +42,17 @@ Step3: Import the project into Eclipse
 
 ## Smartto Tool
 
+You can get latest and legacy versions of firmware from [here](http://geeetech.com/firmware/) and [here](https://github.com/Geeetech3D/Smartto/tree/master/firmwares/logs/firmware_changelog.md) for changelog
+
 ### Platform--Windows
 <div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
 
 ### Platform--Mac
 <div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
 
-## Record
+## Changelog
 
-2018/7/5 Add M201-M205 support in motor tool V1.0 \
-2018/6/29 Add smartto motor tool for Mac \
-2018/6/28 Add smartto firmware tool for Mac
+2018/7/5 Add M201-M205 support in motor tool V1.0 
 
 ## License
 GPL v2
