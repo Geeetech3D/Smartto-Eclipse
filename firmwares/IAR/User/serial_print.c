@@ -573,7 +573,7 @@ void fetch_next_commandS(void)
         {
             delay_ms(300);
             File_DownST.File_Flag=1;
-            Firmware_Updata_Flag =1;
+            Firmware_Updata_Flag =1;//Firmware_Updata_Flag
             Disable_IRQHandler();
             Init_Usart1_arg();
             printf("fail\r\n");

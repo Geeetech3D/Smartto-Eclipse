@@ -110,7 +110,7 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 
 
 #define NUM_AXIS                  4
-#define EXT_NUM 3
+#define EXT_NUM                    1
 
 #define EXTRUDE_MAXLENGTH         10.0
 

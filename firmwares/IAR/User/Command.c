@@ -223,7 +223,7 @@ extern char sd_file_namebuf[FILE_NUM][FILE_NAME_SIZE];//sd_file_namebuf[255][50]
 long gcode_N = 0;
 #ifdef BOARD_A30_MINI_S
   int servo_endstops[] = SERVO_ENDSTOPS;
-  char Firmware_version[9]="V1.00.59";
+  char Firmware_version[9]="V1.00.61";
 #elif BOARD_E180_MINI_S
   char Firmware_version[9]="V1.00.41";
 #elif BOARD_M301_Pro_S
@@ -679,8 +679,9 @@ u8 Add_Upload_data(void)
 	memset(str_updata,0,30);
 	sprintf(str_updata,"*>\r\n");
 	strncat(Upload_DataS, str_updata, 30);  
-	if(ret==1)
+	if(ret==1&&Firmware_Updata_Flag!=1)
 	{
+	
 		USART3_printf(Upload_DataS);
          //  printf("DD:%s",Upload_DataS);
 	}
@@ -1377,6 +1378,7 @@ static void Set_hotend_pid(void)  //Set PID parameters
     if(Command_is('P',&ch_point)) Setting.Kp[num] = Command_value_float(ch_point);
     if(Command_is('I',&ch_point)) Setting.Ki[num] = Command_value_float(ch_point);
     if(Command_is('D',&ch_point)) Setting.Kd[num] = Command_value_float(ch_point);
+    printf("hotend_H:0;P:%.3f;I:%.3f;D:%.3f\r\n",Setting.Kp[0],Setting.Ki[0],Setting.Kd[0]);
 }
 
 static void Set_bed_pid(void)  //Set PID parameters
@@ -1385,6 +1387,7 @@ static void Set_bed_pid(void)  //Set PID parameters
     if(Command_is('P',&ch_point)) Setting.Kp[BED] = Command_value_float(ch_point);
     if(Command_is('I',&ch_point)) Setting.Ki[BED] = Command_value_float(ch_point);
     if(Command_is('D',&ch_point)) Setting.Kd[BED] = Command_value_float(ch_point);
+    printf("bed_P:%.3f;I:%.3f;D:%.3f\r\n",Setting.Kp[BED],Setting.Ki[BED],Setting.Kd[BED]);
 }
 #ifdef ENABLE_AUTO_BED_LEVELING
 extern volatile long endstops_trigsteps[3];
@@ -1780,6 +1783,13 @@ void Send_m105_ask(void)
 }
 void  Return_M105_Command(void)
 {
+#if (EXT_NUM==1)
+    printf("\r\nok B:%.1f /%.1f T0:%.1f /%.1f F:%d R:%d @:0 B@:0\r\n",
+        Current_Temperature[BED],Setting.targe_temperature[BED],
+        Current_Temperature[NOZZLE0],Setting.targe_temperature[NOZZLE0],
+        (u16)(system_infor.fan_hotend_speed * 100 / 255),
+        system_infor.feed_tare);
+#else
     printf("\r\nok B:%.1f /%.1f T0:%.1f /%.1f T1:%.1f /%.1f T2:%.1f /%.1f F:%d R:%d @:0 B@:0\r\n",
         Current_Temperature[BED],Setting.targe_temperature[BED],
         Current_Temperature[NOZZLE0],Setting.targe_temperature[NOZZLE0],
@@ -1787,6 +1797,7 @@ void  Return_M105_Command(void)
         Current_Temperature[NOZZLE2],Setting.targe_temperature[NOZZLE2],
         (u16)(system_infor.fan_hotend_speed * 100 / 255),
         system_infor.feed_tare);
+#endif
 #ifdef WIFI_MODULE
     if(WIFI_MODE == WIFI_HANDLE_DATA)
     {
@@ -1860,15 +1871,24 @@ void Processing_command(void)
             break;     
 
             case 4://pause
+                {
                 system_infor.pause_time = 0;
                 if(Command_is('P',&ch_point))
                 system_infor.pause_time = Command_value_long(ch_point);//ms
                 if(Command_is('S',&ch_point))
                 system_infor.pause_time = Command_value_long(ch_point)*1000;//s
+                
+                Queue_wait();//先完成前面指令的执行，再进行下一步相应的定时操作，顺序不能反
+                TIM8->ARR = 7999;///1ms 定时设定
+                //system_infor.pause_flag = true不能在Queue_wait();的前面执行，
+                //否则当G4会使前面有运动指令的情况，永远完成不了Queue_wait()
                 system_infor.pause_flag = true;
-                Queue_wait();
                 while(system_infor.pause_time);
                 system_infor.pause_flag = false;
+                }
+            break;
+            case 5:
+                    
             break;
 
             case 20://Set the unit to inch
@@ -1877,11 +1897,7 @@ void Processing_command(void)
 
             case 21://Setting unit is mm
                 Setting.unit = MM;
-                if((system_infor.serial_printf_flag == DISABLE) && (serial_connect_flag == ENABLE))
-                {
-                    system_infor.serial_printf_flag=ENABLE;
-                    system_infor.system_status=SERIAL_CONNECT;
-                }
+
             break;
 
             case 28://XYZ axis homed
@@ -2799,9 +2815,38 @@ void Processing_command(void)
                         Setting.max_acceleration[i] = Command_value_float(ch_point); 
                     }
                 }
+                sprintf(Printf_Buf, "max_acceleration_set_ok\n");my_printf(Printf_Buf);
                 Store_Memory(FACTORY_SETTINGS);
                 break;
-                
+           case 203:// M203: Set max feedrate (units/sec)
+            {
+                for(u8 i=0;i<NUM_AXIS;i++)
+                {
+                    if(Command_is(Coordinate_Axias[i],&ch_point))
+                    {       	
+                        Setting.max_feedrate[i] = Command_value_long(ch_point); 
+                    }
+                }
+                Store_Memory(FACTORY_SETTINGS);
+                sprintf(Printf_Buf, "max_feedrate_set_ok\n");my_printf(Printf_Buf);
+                Store_Memory(USER_SETTINGS);
+            }
+            break;
+            case 204: // M204: Set acceleration
+            {
+                if(Command_is('P',&ch_point))
+                {
+                    Setting.acceleration=(int)Command_value_long(ch_point);
+                }
+                if(Command_is('R',&ch_point))
+                {
+                    Setting.retract_acceleration=(int)Command_value_long(ch_point);
+                }
+                Store_Memory(FACTORY_SETTINGS);
+                sprintf(Printf_Buf, "acceleration_set_ok\n");my_printf(Printf_Buf);
+                Store_Memory(USER_SETTINGS);
+            }
+            break;
              case 205:  //set max jerk
                 for(u8 i=0;i<NUM_AXIS;i++)
                 {
@@ -2817,7 +2862,32 @@ void Processing_command(void)
                             Setting.max_e_jerk = Command_value_float(ch_point);
                     }
                 }
+                 if(Command_is('S',&ch_point))
+                {
+                    Setting.min_feedrate=(int)Command_value_long(ch_point);
+                }
+                if(Command_is('T',&ch_point))
+                {
+                    Setting.min_travel_feedrate=(int)Command_value_long(ch_point);
+                }
+                if(Command_is('B',&ch_point))
+                {
+                    Setting.min_segment_time=(int)Command_value_long(ch_point);
+                }
                 Store_Memory(FACTORY_SETTINGS);
+                sprintf(Printf_Buf, "max_jerk_set_ok\n");my_printf(Printf_Buf);
+                Store_Memory(USER_SETTINGS);
+                break;
+            case 2202:
+                sprintf(Printf_Buf, "max_x_acceleration:%d;max_y_acceleration:%d;max_z_acceleration:%d;max_e_acceleration:%d;",Setting.max_acceleration[0],Setting.max_acceleration[1],Setting.max_acceleration[2],Setting.max_acceleration[3]);
+                my_printf(Printf_Buf);
+                sprintf(Printf_Buf, "max_x_feedrate:%d;max_y_feedrate:%d;max_z_feedrate:%d;max_e_feedrate:%d;",Setting.max_feedrate[0],Setting.max_feedrate[1],Setting.max_feedrate[2],Setting.max_feedrate[3]);
+                my_printf(Printf_Buf);
+                sprintf(Printf_Buf, "acceleration:%f;retract_acceleration:%f;",Setting.acceleration,Setting.retract_acceleration);
+                my_printf(Printf_Buf);
+                sprintf(Printf_Buf, "max_x_jerk:%.1f;max_y_jerk:%.1f;max_z_jerk:%.1f;max_e_jerk:%.1f;min_feedrate:%d;min_travel_feedrate:%d;min_segment_time:%d\r\n",Setting.max_x_jerk,Setting.max_y_jerk,Setting.max_z_jerk,Setting.max_e_jerk,Setting.min_feedrate,Setting.min_travel_feedrate,Setting.min_segment_time);
+                my_printf(Printf_Buf);
+                
                 break;
             case 220:
                 if(Command_is('S',&ch_point))
@@ -3456,6 +3526,8 @@ void Processing_command(void)
             break;
 
             case 2556: //Detect whether WiFi exists
+                 if(Firmware_Updata_Flag==1)
+                    break;
                 WIF_EXIST_TEST();
                 Add_Message(PRINTER_SD_STATUS);
             break;
@@ -3490,6 +3562,8 @@ void Processing_command(void)
 #endif
             case 2558:  // LCD version information   "M2558 S53"
             {
+                if(Firmware_Updata_Flag==1)
+                    break;
                 char *sp = strchr(Command_Buffer,'S');
                 if(sp!=NULL)
                 {	 

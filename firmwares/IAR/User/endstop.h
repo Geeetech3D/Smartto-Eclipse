@@ -15,7 +15,11 @@
 #endif
   #define Max_Y GPIO_Pin_2
   #define Min_Y GPIO_Pin_3
+  #ifndef BOARD_A30_MINI_S
   #define Max_X GPIO_Pin_4
+  #else
+  #define Max_X  -1
+  #endif
   #define Min_X GPIO_Pin_5
 
 void __Endstop_GPIO_config(void);

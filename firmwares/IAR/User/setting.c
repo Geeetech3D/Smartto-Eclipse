@@ -7,15 +7,14 @@
 
 #define STORE_LEN 127	
 
-#define SETTINGS_FLAG 0xa55b
+#define SETTINGS_FLAG 0xa55c
 
 setting_t Setting;
 setting_s Settings;
 
 static void Init_Defaults_Setting(void)
 {
-    float Kid=0.0;
-    Kid=(TEMPERATURE_SAMPLING_PERIOD)/10.0;
+
 	
     Setting.hotend_num = HOTHEAD_NUMBER;       
     Setting.hotend_enable[BED] = (FunctionalState)HOTBED;
@@ -35,30 +34,13 @@ static void Init_Defaults_Setting(void)
     Setting.max_temperature[NOZZLE1] = MAX_TEMPERATURE_NO_2;
     Setting.max_temperature[NOZZLE2] = MAX_TEMPERATURE_NO_3;
 
-    	Setting.Kp[BED] = KP_BED;
-    Setting.Kp[NOZZLE0] = KP_NO_1;
-          
-    Setting.Ki[BED] = KI_BED*Kid;
-    Setting.Ki[NOZZLE0] = KI_NO_1*Kid;
-         
-    Setting.Kd[BED] = KD_BED/Kid;
-    Setting.Kd[NOZZLE0] = KD_NO_1/Kid;
-    Setting.Kp[NOZZLE1] = KP_NO_2;
-    Setting.Kp[NOZZLE2] = KP_NO_3;
-    
-    Setting.Ki[NOZZLE1] = KI_NO_2*Kid;
-    Setting.Ki[NOZZLE2] = KI_NO_3*Kid;
-    
-    Setting.Kd[NOZZLE1] = KD_NO_2/Kid;
-    Setting.Kd[NOZZLE2] = KD_NO_3/Kid;
+
 
 
     	
 
            
-    Setting.extrude_multiply = EXTRUDE_MULTIPLY;
-    Setting.min_segment_steps = MIN_SEGMENT_STEPS;
-    Setting.min_segment_time = MIN_SEGMENT_TIME;
+
     
     Setting.pid_adjust_range = TEMPERATURE_ADJUST_RANGE;
   
@@ -72,16 +54,10 @@ static void Init_Defaults_Setting(void)
 	Setting.targe_temperature[BED]=0;
 	Setting.locate_mode = ABSOLUTE_COORDINATE;
 
-	Setting.max_acceleration[X_AXIS] = AXIS_ACCELERATION_FOR_X;
-      Setting.max_acceleration[Y_AXIS] = AXIS_ACCELERATION_FOR_Y;
-      Setting.max_acceleration[Z_AXIS] = AXIS_ACCELERATION_FOR_Z;
-     Setting.max_acceleration[E_AXIS] = AXIS_ACCELERATION_FOR_E;  
+
 
          Setting.max_jerk = MAX(MAX_X_JERK,MAX(MAX_Y_JERK,MAX(MAX_Z_JERK,MAX_E_JERK)));
-    Setting.max_x_jerk = MAX_X_JERK;
-    Setting.max_y_jerk = MAX_Y_JERK;
-    Setting.max_z_jerk = MAX_Z_JERK;
-    Setting.max_e_jerk = MAX_E_JERK;  
+
 
 	  Setting.home_speed[X_AXIS] = HOME_SPEED_X;
     Setting.home_speed[Y_AXIS] = HOME_SPEED_Y;
@@ -91,10 +67,7 @@ static void Init_Defaults_Setting(void)
     Setting.home_position[Y_AXIS] = HOMEY;
     Setting.home_position[Z_AXIS] = HOMEZ;
 
-     Setting.min_travel_feedrate = MIN_TRAVEL_FEEDRATE;
-    Setting.min_feedrate = MIN_FEEDRATE;
-    Setting.retract_acceleration = RETRACT_ACCELERATION;
-    Setting.acceleration = ACCELERATION;
+
     
     Setting.axis_steps_per_sqr_second[X_AXIS] = (unsigned long)ceil(AXIS_ACCELERATION_FOR_X*Setting.steps_per_mm[X_AXIS]);
     Setting.axis_steps_per_sqr_second[Y_AXIS] = (unsigned long)ceil(AXIS_ACCELERATION_FOR_Y*Setting.steps_per_mm[Y_AXIS]);
@@ -128,9 +101,8 @@ static void Init_Defaults_Setting(void)
 
 static void Get_Base_Setting(void)
 {
-	//float Kid=0.0;
-
-    //Kid=(TEMPERATURE_SAMPLING_PERIOD)/10.0;
+    float Kid=0.0;
+    Kid=(TEMPERATURE_SAMPLING_PERIOD)/10.0;
 
     
  
@@ -159,6 +131,40 @@ static void Get_Base_Setting(void)
     Setting.motor_direction[E_AXIS] = DIR_E;
     Setting.motor_direction[E1_AXIS] = DIR_E1;
     Setting.motor_direction[E2_AXIS] = DIR_E2;
+    
+
+    Setting.extrude_multiply = EXTRUDE_MULTIPLY;
+    Setting.min_segment_steps = MIN_SEGMENT_STEPS;
+    Setting.min_segment_time = MIN_SEGMENT_TIME;
+        Setting.max_x_jerk = MAX_X_JERK;
+    Setting.max_y_jerk = MAX_Y_JERK;
+    Setting.max_z_jerk = MAX_Z_JERK;
+    Setting.max_e_jerk = MAX_E_JERK;  
+     Setting.min_travel_feedrate = MIN_TRAVEL_FEEDRATE;
+    Setting.min_feedrate = MIN_FEEDRATE;
+    Setting.retract_acceleration = RETRACT_ACCELERATION;
+    Setting.acceleration = ACCELERATION;
+    Setting.max_acceleration[X_AXIS] = AXIS_ACCELERATION_FOR_X;
+    Setting.max_acceleration[Y_AXIS] = AXIS_ACCELERATION_FOR_Y;
+    Setting.max_acceleration[Z_AXIS] = AXIS_ACCELERATION_FOR_Z;
+    Setting.max_acceleration[E_AXIS] = AXIS_ACCELERATION_FOR_E;  
+    
+    Setting.Kp[BED] = KP_BED;
+    Setting.Kp[NOZZLE0] = KP_NO_1;
+          
+    Setting.Ki[BED] = KI_BED*Kid;
+    Setting.Ki[NOZZLE0] = KI_NO_1*Kid;
+         
+    Setting.Kd[BED] = KD_BED/Kid;
+    Setting.Kd[NOZZLE0] = KD_NO_1/Kid;
+    Setting.Kp[NOZZLE1] = KP_NO_2;
+    Setting.Kp[NOZZLE2] = KP_NO_3;
+    
+    Setting.Ki[NOZZLE1] = KI_NO_2*Kid;
+    Setting.Ki[NOZZLE2] = KI_NO_3*Kid;
+    
+    Setting.Kd[NOZZLE1] = KD_NO_2/Kid;
+    Setting.Kd[NOZZLE2] = KD_NO_3/Kid;
     #ifdef DELTA
         Setting.delta_segments_per_sec = DELTA_SEGMENTS_PER_SECOND;
         Setting.delta_diagonal_rod = DELTA_DIAGONAL_ROD;
@@ -188,7 +194,7 @@ void Get_Printer_Factory_Settings(void)
 {
 	 //u16 store_flag=0;    
          Get_Base_Setting();
-	 STMFLASH_Write(USER_SETTINGS_PARAMETERS_ADDR, (u16*)(&Setting), 128);//restore factory setting
+	 STMFLASH_Write(USER_SETTINGS_PARAMETERS_ADDR, (u16*)(&Setting), 256);//restore factory setting
 
 }
 /**********************************************************
@@ -210,7 +216,7 @@ void Get_Printer_User_Settings(void)
     }
     else
     {
-        STMFLASH_Read(USER_SETTINGS_PARAMETERS_ADDR, (u16*)(&Setting),  128);
+        STMFLASH_Read(USER_SETTINGS_PARAMETERS_ADDR, (u16*)(&Setting),  256);
     }
 
     Init_Defaults_Setting();

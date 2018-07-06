@@ -1,5 +1,5 @@
 [DebugChecksum]
-Checksum=-193983442
+Checksum=465424690
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -125,7 +125,7 @@ Bp11=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\stm32f10x_it.c}.121.4" 0 0 1 "" 0 "" 0
 Bp12=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\planner.c}.750.5" 0 0 1 "" 0 "" 0
 Bp13=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\wifi.c}.418.17" 0 0 1 "" 0 "" 0
 Bp14=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\planner.c}.734.3" 0 0 1 "" 0 "" 0
-Bp15=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\step_motor.c}.871.1" 0 0 1 "" 0 "" 0
+Bp15=_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\User\step_motor.c}.871.4" 0 0 1 "" 0 "" 0
 Bp16=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\step_motor.c}.871.4" 0 0 1 "" 0 "" 0
 Bp17=_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\User\data_handle.c}.212.13" 0 0 1 "" 0 "" 0
 Count=18

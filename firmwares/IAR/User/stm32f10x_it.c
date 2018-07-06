@@ -482,10 +482,10 @@ void TIM8_UP_IRQHandler(void)
 	  Autohome.count++; 
 	  All_axis_go_origin();
 	}
-	else if(system_infor.pause_flag == 1)
+	else if(system_infor.pause_flag == true)
 	{
-	  TIM_ClearITPendingBit(TIM8,TIM_IT_Update);
-	   if(system_infor.pause_time!=0)
+	  //TIM_ClearITPendingBit(TIM8,TIM_IT_Update);
+	   if(system_infor.pause_time != 0)
               	system_infor.pause_time--;
 	}     
 	else Step_Motor_Control();
@@ -504,7 +504,7 @@ void TIM8_UP_IRQHandler(void)
 ***********************************************************/
 void EXTI4_IRQHandler(void)
 { 
-#if 0
+
  	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{ 
 	    delay_us(2); 
@@ -519,7 +519,7 @@ void EXTI4_IRQHandler(void)
 	    }
 		
 	}
-#endif
+
 	EXTI_ClearITPendingBit(EXTI_Line4);
 }
 #elif BOARD_E180_MINI_S
