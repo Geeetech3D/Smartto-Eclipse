@@ -163,10 +163,10 @@ The PID parameters can be modified by commands ."M301 H0 P1600.045288,M301 H0 P2
 #define AXIS_ACCELERATION_FOR_E    1500// 800 //5000//800 //5000//Emm/s^2    //2016.6.3 
 
 //
-#define MAX_X_JERK   20// 4//10//20//mm/s     //2016.6.3
-#define MAX_Y_JERK  20// 4//10//20//mm/s     //2016.6.3
-#define MAX_Z_JERK  5  //0.5//mm/S
-#define MAX_E_JERK  20// 4////mm/S   //dxc   defore is 20
+#define MAX_X_JERK   5// 4//10//20//mm/s     //2016.6.3
+#define MAX_Y_JERK   5// 4//10//20//mm/s     //2016.6.3
+#define MAX_Z_JERK   0.5  //0.5//mm/S
+#define MAX_E_JERK   5// 4////mm/S   //dxc   defore is 20
 #define MIN_MIXER_OFP   0
 #define MAX_MIXER_OFP   (100-MIN_MIXER_OFP)
 
