@@ -2684,6 +2684,7 @@ void Processing_command(void)
             	{
             		Setting.travel_acceleration = Command_value_float(ch_point);
             	}
+            break;
 
             case 205:  //set advanced settings
             	if(Command_is('S',&ch_point)) //min travel speed while printing
@@ -2698,16 +2699,19 @@ void Processing_command(void)
             	{
             		Setting.min_segment_time = Command_value_float(ch_point);
             	}
-            	if(Command_is(Coordinate_Axias[i],&ch_point)) //jerk per axis (XYZE)
+            	for(u8 i=0;i<NUM_AXIS;i++)
             	{
-            		if(i==0)
-            			Setting.max_x_jerk = Command_value_float(ch_point);
-            		else if(i==1)
+            		if(Command_is(Coordinate_Axias[i],&ch_point)) //jerk per axis (XYZE)
+            		{
+            			if(i==0)
+            				Setting.max_x_jerk = Command_value_float(ch_point);
+            			else if(i==1)
             			Setting.max_y_jerk = Command_value_float(ch_point);
-            		else if(i==2)
+            			else if(i==2)
             			Setting.max_z_jerk = Command_value_float(ch_point);
-            		else if(i==3)
+            			else if(i==3)
             			Setting.max_e_jerk = Command_value_float(ch_point);
+            		}
             	}
             break;
 
