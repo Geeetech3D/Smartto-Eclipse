@@ -10,8 +10,7 @@
 ## What's included
 Folder | Description
 --- | ---
-firmwares | source code of this project(including IAR version and Eclipse version)
-circuit_diagram | electronic circuit diagrams of A30 / E180 / 301 
+STM32f103r | source code of this project
 tools | mini scripts for using firmwares or controlling motor
 
 ## Support
@@ -19,11 +18,7 @@ Company | Production
 --- | ---
 Geeetech | A30 / E180 / 301
 
-## Platform--IAR(stable)
-
-## Platform--Eclipse(alpha)
-
-### How to compile STM32
+## How to compile STM32
 Step 1: Install Java environment
 
 You can download JDK from [here (32bits)](http://www.geeetech.com/OpenSource/eclipse/chromeinstall-8u171.exe) or Java official website
@@ -50,9 +45,6 @@ You can get stable and legacy versions of firmware from [here](http://geeetech.c
 ### Platform--Mac
 <div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
 
-## Changelog
-
-2018/7/5 Add M201-M205 support in motor tool V1.0 
 
 ## License
 GPL v2
