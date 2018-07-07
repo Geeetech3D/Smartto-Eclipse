@@ -37,7 +37,7 @@ Step3: Import the project into Eclipse
 
 ## Smartto Tool
 
-You can get stable and legacy versions of firmware from [here](http://geeetech.com/firmware/) and [here](https://github.com/Geeetech3D/Smartto-IAR/tree/master/log/firmware_changelog.md) for changelog. We will put compiled firmware which is latest version but not be tested into firmwares/test/
+You can get stable and legacy versions of firmware from [here](http://geeetech.com/firmware/) and [here](https://github.com/Geeetech3D/Smartto-IAR/tree/master/log/firmware_changelog.md) for changelog.
 
 ### Platform--Windows
 <div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
