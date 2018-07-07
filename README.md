@@ -25,7 +25,7 @@ You can download JDK from [here (32bits)](http://www.geeetech.com/OpenSource/ecl
 
 #### 2. Download and unzip project source code and toolchain
 
-you can find all the downloads [here](http://www.geeetech.com/OpenSource/)
+You can find all the downloads [here](http://www.geeetech.com/OpenSource/)
 
 #### 3. Import the project into Eclipse
 
