@@ -19,20 +19,20 @@ Company | Production
 Geeetech | A30 / E180 / 301
 
 ## How to compile STM32
-Step 1: Install Java environment
+#### 1. Install Java environment
 
 You can download JDK from [here (32bits)](http://www.geeetech.com/OpenSource/eclipse/chromeinstall-8u171.exe) or Java official website
 
-Step 2: Download and unzip project source code and toolchain
+#### 2. Download and unzip project source code and toolchain
 
 you can find all the downloads [here](http://www.geeetech.com/OpenSource/)
 
-Step 3: Import the project into Eclipse
+#### 3. Import the project into Eclipse
 
-Step 4: Change arm gcc tool chain path
+#### 4. Change arm gcc tool chain path
 In Eclipse, follow the menu "Window"->"Preferences", and then "MCU"->"Global ARM Toolchains Paths"->Browse and choose the path of toolchains bin
 
-Step 5: Build the  project
+#### 5. Build the  project
 
 ## Smartto Tool
 
