@@ -40,7 +40,7 @@ You can get stable and legacy versions of firmware from [here](http://geeetech.c
 Attention: Character 'S' in name of bin file(such as A30_APP_S_V1.38.61.bin) means "Slave Device" and 'M' for "Master Device.
 
 ### Platform--Windows
-<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/firmware_tool_snapshot.png" width="400" height="400" alt="firmware-tool-usage" /><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
 
 ### Platform--Mac
 <div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
