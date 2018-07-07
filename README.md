@@ -31,13 +31,19 @@ Toolchain | [Geeetech](http://www.geeetech.com/OpenSource/eclipse/arm-none-eabi-
 Eclipse | [Geeetech](http://www.geeetech.com/OpenSource/eclipse/gnumcueclipse4.3.2-oxygen-win32x86.zip)
 Project | STM32f103r.zip
 
-Step3: Import the project into Eclipse
+Step 3: Import the project into Eclipse
 
 [Eclipse Tools](http://www.geeetech.com/OpenSource/)
+
+Step 4: Change arm gcc tool chain path
+In Eclipse, follow the menu "Window"->"Preferences", and then "MCU"->"Global ARM Toolchains Paths"->Browse and choose the path of toolchains bin
+
+Step 5: Build the  project
 
 ## Smartto Tool
 
 You can get stable and legacy versions of firmware from [here](http://geeetech.com/firmware/) and [here](https://github.com/Geeetech3D/Smartto-IAR/tree/master/log/firmware_changelog.md) for changelog.
+Attention: Character 'S' in name of bin file(such as A30_APP_S_V1.38.61.bin) means "Slave Device" and 'M' for "Master Device.
 
 ### Platform--Windows
 <div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
