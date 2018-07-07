@@ -1,4 +1,4 @@
-<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/smartto-logo.png" width="400" height="100" alt="smartto-logo" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/smartto-logo.png" width="400" height="100" alt="smartto-logo" /></div>
 
 ## Status
 [![Opensource](https://img.shields.io/badge/Opensource%20by-Geeetech3D-blue.svg)](https://www.geeetech.com/)
@@ -40,10 +40,10 @@ Step3: Import the project into Eclipse
 You can get stable and legacy versions of firmware from [here](http://geeetech.com/firmware/) and [here](https://github.com/Geeetech3D/Smartto-IAR/tree/master/log/firmware_changelog.md) for changelog.
 
 ### Platform--Windows
-<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/motor_tool_snapshot.png" width="400" height="400" alt="motor-tool-usage" /></div>
 
 ### Platform--Mac
-<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
+<div align=center><img src="https://raw.githubusercontent.com/geeetech3d/smartto-eclipse/master/docs/assets/motor_tool_mac_snapshot.png" width="400" height="400" alt="motor-tool-mac-usage" /></div>
 
 
 ## License
