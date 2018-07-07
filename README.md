@@ -25,15 +25,9 @@ You can download JDK from [here (32bits)](http://www.geeetech.com/OpenSource/ecl
 
 Step 2: Download and unzip project source code and toolchain
 
-File | Download
---- | ---
-Toolchain | [Geeetech](http://www.geeetech.com/OpenSource/eclipse/arm-none-eabi-gcc-8.1.0-180502-win32.7z)
-Eclipse | [Geeetech](http://www.geeetech.com/OpenSource/eclipse/gnumcueclipse4.3.2-oxygen-win32x86.zip)
-Project | STM32f103r.zip
+you can find all the downloads [here](http://www.geeetech.com/OpenSource/)
 
 Step 3: Import the project into Eclipse
-
-[Eclipse Tools](http://www.geeetech.com/OpenSource/)
 
 Step 4: Change arm gcc tool chain path
 In Eclipse, follow the menu "Window"->"Preferences", and then "MCU"->"Global ARM Toolchains Paths"->Browse and choose the path of toolchains bin
