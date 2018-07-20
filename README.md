@@ -44,6 +44,7 @@ In Eclipse, follow the menu "Window"->"Preferences", and then "MCU"->"Global ARM
 
 You can get stable and legacy versions of firmware from [here](http://geeetech.com/firmware/) and [here](https://github.com/Geeetech3D/Smartto-IAR/tree/master/log/firmware_changelog.md) for changelog.
 
+
 **Attention1**: Character 'S' in name of bin file(such as A30_APP_S_V1.38.61.bin) means "Slave Device" and 'M' for "Master Device.(Maybe it's a very old naming error) \
 **Attention2**: Make sure your SD card has been inserted before upgrading.
 
