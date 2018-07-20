@@ -13,6 +13,7 @@ from ScrolledText import *
 from Helper.DeviceHelper import DeviceHelper
 from Helper.SerialHelper import SerialHelper
 from Protocol.YModem import YModem
+from Protocol.GModem import GModem
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s %(message)s',
@@ -27,26 +28,43 @@ class FirmwareUpdator(object):
         self.ser = None
         self.output_panel = output
 
-    def update_firmware(self, profile, com, mainboard):
+    def update_firmware(self, profile, com, bin_file):
         self.output_to_panel("**********Firmware Upgrade Process**********\n")
 
-        try:
-            self.output_to_panel("Initial Global Configuration...\n")
-            self.init_config(profile, com)
-            
-            self.output_to_panel("Enter Boot Mode...\n")
-            self.set_boot()
-            self.output_to_panel("Start Upgrade Mainboard...\n")
-            self.upload_mainboard(mainboard)
-            
-            self.output_to_panel("Restart System...\n")
-            self.reconnect_serial()
-            self.output_to_panel("Success!\n")
-            self.close_serial()
+        if '_S_' in bin_file:
+            self.output_to_panel("Detected mainboard bin file\n")
+            try:
+                self.output_to_panel("Initial Global Configuration...\n")
+                self.init_config(profile, com)
+                
+                self.output_to_panel("Enter Boot Mode...\n")
+                self.set_boot()
+                self.output_to_panel("Start Upgrade Mainboard...\n")
+                self.upload_mainboard(bin_file)
+                
+                self.output_to_panel("Restart System...\n")
+                self.reconnect_serial()
+                self.output_to_panel("Mainboard upgraded successfully!\n")
+                self.close_serial()
 
-        except Exception as e:
-            self.output_to_panel("Error, upgrading failed! Detail: " + str(e) + "\n")
-            return
+            except Exception as e:
+                self.output_to_panel("Error, upgrading failed! Detail: " + str(e) + "\n")
+
+        elif '_M_' in bin_file:
+            try:
+                self.output_to_panel("Initial Global Configuration...\n")
+                self.init_config(profile, com)
+                self.output_to_panel("Enter Normal Mode...\n")
+                self.set_normal()
+                self.output_to_panel("Start Upgrade LCD...\n")
+                self.upload_LCD(bin_file)
+                # self.output_to_panel("重启机器系统...\n")
+                # self.reconnect_serial()
+                self.output_to_panel("LCD upgraded successfully! You may restart your machine manually.\n")
+                self.close_serial()
+            except Exception as e:
+                self.output_to_panel("Error, upgrading failed! Detail: " + str(e) + "\n")
+        
 
         
     def output_to_panel(self, message):
@@ -70,9 +88,8 @@ class FirmwareUpdator(object):
             self.stopbit = config['stopbit']
             
         except Exception as e:
-            #logging.error(e)
-            #raise Exception("Configuration file broken!")
-            raise e
+            # logging.error(e)       
+            raise Exception("Configuration file broken!")
 
     def set_boot(self):
         global timeout_count
@@ -113,6 +130,44 @@ class FirmwareUpdator(object):
             timer.cancel()
             timeout_count = 0
             break
+
+    def set_normal(self):
+        global timeout_count
+        global timer
+
+        def check_receive_timeout():
+            global timer
+            global timeout_count
+            timeout_count += 1
+            timer = threading.Timer(1, check_receive_timeout)
+            timer.start()
+        timer = threading.Timer(1, check_receive_timeout)
+        timer.start()
+
+        while True:
+            if timeout_count > 8:
+                timer.cancel()
+                timeout_count = 0
+                raise Exception("打开串口超时，可能选择了错误的串口!")
+
+            try:
+                self.open_serial()
+            except Exception as e:
+                timer.cancel()
+                timeout_count = 0
+                raise Exception("无法生成串口对象!")
+            
+            # 新线程清空信道
+            self.start_on_data_received(self.data_received_handler)
+            time.sleep(3)
+            # 关闭新线程
+            self.stop_serial_listener()
+
+            timer.cancel()
+            timeout_count = 0
+            break
+
+        time.sleep(5)
 
     def reconnect_serial(self):
         self.ser.reconnect()
@@ -178,6 +233,26 @@ class FirmwareUpdator(object):
             raise
         stream.close()
 
+    def upload_LCD(self, LCD):
+        parent = self
+        def getl():
+            return parent.ser._serial.readline() or None
+        def putc(data):
+            return parent.ser._serial.write(data)
+        modem = GModem(getl, putc)
+        try:
+            stream = open(LCD, 'rb')
+            length = os.path.getsize(LCD)
+        except IOError as e:
+            # logging.error(e)
+            raise Exception("Failed to open firmware configuration file!!")
+        try:
+            modem.send(stream, length, self.data_received_handler, 8, self.record_progress)
+        except Exception as e:
+            stream.close()
+            raise
+        stream.close()
+
     def record_progress(self, total_count, ok_count):
         self.output_to_panel("Upgrading... " + str(math.trunc(ok_count * 100 / total_count)) + '% \n')
 
@@ -231,7 +306,9 @@ class Application(Frame):
 
     def select_firmware(self):
         self.file_path = filedialog.askopenfilename(filetypes = [('BIN', 'bin')])
-        self.info_text.insert(END, "New firmware file has been selected! Path:" + self.file_path + '\n')
+        if self.file_path is not None and self.file_path != "":
+            self.info_text.insert(END, "New firmware file has been selected! Path:" + self.file_path + '\n')
+            self.info_text.see(END)
 
     def clear_info_text(self):
         self.info_text.delete(1.0, END)
@@ -256,7 +333,7 @@ class Application(Frame):
 if __name__ == '__main__':
     master = Tk()
     master.configure(background="#f2f2f2")
-    master.title('Smatto Firmware Tool')
+    master.title('Smatto Firmware Tool V1.0')
     master.iconbitmap(os.path.join(os.path.split(os.path.realpath(__file__))[0], "tool.ico"))
     app = Application(master)
     app.mainloop()
