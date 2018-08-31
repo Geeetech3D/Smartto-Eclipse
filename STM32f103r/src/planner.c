@@ -405,7 +405,7 @@ void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate,
 	Cal_delta_mm[Y_AXIS]=block->bed_ForCalulate_point_y-block_buffer[last_buffer_head].bed_ForCalulate_point_y;
 	Cal_delta_mm[Z_AXIS]=block->bed_ForCalulate_point_z-block_buffer[last_buffer_head].bed_ForCalulate_point_z;
 	Cal_delta_mm[E_AXIS]=block->point_e-block_buffer[last_buffer_head].point_e;
-	if((system_infor.sd_print_status==0x02||system_infor.serial_printf_flag == 1)&&system_infor.auto_leveling_calculate_enable==ENABLE)//´òÓ¡Ê±»Ø³é³¤¶È´óÓÚ15mm£¬»áÓĞÍËÁÏµÄ·çÏÕ
+	if((system_infor.sd_print_status==0x02||system_infor.serial_printf_flag == 1)&&system_infor.auto_leveling_calculate_enable==ENABLE)//æ‰“å°æ—¶å›æŠ½é•¿åº¦å¤§äº15mmï¼Œä¼šæœ‰é€€æ–™çš„é£é™©
 	{
 		//Abnormal event judgment
        	if((Cal_delta_mm[E_AXIS]<-20.0)||Cal_delta_mm[E_AXIS]>(Setting.max_position[X_AXIS]+Setting.max_position[Y_AXIS])||(Cal_delta_mm[X_AXIS]==0.0&&Cal_delta_mm[Y_AXIS]==0.0&&Cal_delta_mm[E_AXIS]>20.0)||(block->sd_byte>5120&&Cal_delta_mm[Z_AXIS]<-0.5&&block->bed_ForCalulate_point_z>1.5)) 
@@ -1185,6 +1185,9 @@ void plan_set_position(float x, float y, float z, const float e)
   previous_speed[3] = 0.0;
 }
 
+
+#ifndef __GNUC__
+
 #pragma inline=forced
  void Discard_current_block(void)
 {
@@ -1225,3 +1228,5 @@ void plan_set_position(float x, float y, float z, const float e)
 {
   while(Blocks_queued_status());
 }
+
+#endif
