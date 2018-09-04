@@ -78,6 +78,53 @@ void signal_axis_plan_init(u8 axis);
 extern block_t block_buffer[BLOCK_BUFFER_SIZE];            // A ring buffer for motion instfructions
 extern __IO u8 block_buffer_head;           // Index of the next block to be pushed
 extern __IO u8 block_buffer_tail; 
+
+
+#ifdef __GNUC__
+
+inline __attribute__((always_inline))
+void Discard_current_block(void)
+{
+  u8 tail = block_buffer_tail;
+  if (block_buffer_head != tail)
+  {
+    block_buffer_tail = (block_buffer_tail + 1) & ( BLOCK_BUFFER_SIZE - 1);
+  }
+}
+
+// Gets the current block. Returns NULL if buffer empty
+inline __attribute__((always_inline))
+block_t *Get_current_block(void)
+{
+  u8 tail = block_buffer_tail;
+  if (block_buffer_head == tail)
+  {
+    return(NULL);
+  }
+   return  (&block_buffer[tail]);
+}
+
+// Gets the current block. Returns NULL if buffer empty
+inline __attribute__((always_inline))
+bool Blocks_queued_status(void)
+{
+  uint8_t tail = block_buffer_tail;
+  if (block_buffer_head == tail)
+  {
+    return false;
+  }
+  else
+    return true;
+}
+
+inline __attribute__((always_inline))
+ void Queue_wait(void)
+{
+  while(Blocks_queued_status());
+}
+
+#else
+
 // Called when the current block is no longer needed. Discards the block and makes the memory
 // availible for new blocks.    
 #pragma inline=forced
@@ -93,6 +140,9 @@ extern __IO u8 block_buffer_tail;
 
  #pragma inline=forced
   void Queue_wait(void);
+
+#endif
+
 // Add a new linear movement to the buffer. x, y and z is the signed, absolute target position in 
 // millimaters. Feed rate specifies the speed of the motion.
 void Plan_buffer_line(float x, float y, float z, const float e, float feed_rate, const uint8_t extruder);  
